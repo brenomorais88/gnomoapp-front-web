@@ -34,7 +34,7 @@ export function useCategoryDetailQuery(id: string) {
 export function useCreateCategoryMutation() {
   return useApiMutation({
     mutationFn: (payload: CreateCategoryInput) => createCategory(payload),
-    invalidateQueryKeys: [queryKeys.categories.root],
+    invalidateQueryKeys: [queryKeys.categories.root, queryKeys.dashboard.root],
   });
 }
 
@@ -42,13 +42,13 @@ export function useUpdateCategoryMutation() {
   return useApiMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateCategoryInput }) =>
       updateCategory({ id, payload }),
-    invalidateQueryKeys: [queryKeys.categories.root],
+    invalidateQueryKeys: [queryKeys.categories.root, queryKeys.dashboard.root],
   });
 }
 
 export function useDeleteCategoryMutation() {
   return useApiMutation({
     mutationFn: (id: string) => deleteCategory(id),
-    invalidateQueryKeys: [queryKeys.categories.root],
+    invalidateQueryKeys: [queryKeys.categories.root, queryKeys.dashboard.root],
   });
 }

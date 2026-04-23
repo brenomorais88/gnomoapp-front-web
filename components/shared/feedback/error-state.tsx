@@ -21,6 +21,8 @@ export function ErrorState({
         "rounded-xl border border-destructive/20 bg-destructive/5 p-5 sm:p-6",
         className,
       )}
+      role="alert"
+      aria-live="assertive"
     >
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 size-5 text-destructive" aria-hidden="true" />

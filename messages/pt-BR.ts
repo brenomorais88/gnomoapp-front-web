@@ -8,6 +8,7 @@ export const ptBRMessages = {
   },
   navigation: {
     dashboard: "Início",
+    family: "Família",
     categories: "Categorias",
     accounts: "Contas",
     occurrences: "Ocorrências",
@@ -36,6 +37,59 @@ export const ptBRMessages = {
     createOccurrence: "Criar ocorrência",
     activate: "Ativar",
     deactivate: "Desativar",
+  },
+  viewScope: {
+    visibleToMe: "Tudo visível para mim",
+    personal: "Contas pessoais",
+    family: "Contas da família",
+    currentContextTitle: "Contexto de visualização",
+    currentContextDescription: "Você está visualizando: {context}",
+  },
+  auth: {
+    actions: {
+      logout: "Sair",
+    },
+    fields: {
+      login: "Login (documento, e-mail ou celular)",
+      loginPlaceholder: "Digite seu documento, e-mail ou celular",
+      firstName: "Nome",
+      lastName: "Sobrenome",
+      document: "Documento",
+      birthDate: "Data de nascimento",
+      email: "E-mail",
+      emailOptional: "E-mail (opcional)",
+      password: "Senha",
+      phoneOptional: "Celular (opcional)",
+    },
+    validation: {
+      requiredLogin: "Informe seu login",
+      requiredFirstName: "Nome é obrigatório",
+      requiredLastName: "Sobrenome é obrigatório",
+      requiredDocument: "Documento é obrigatório",
+      invalidBirthDate: "Data de nascimento deve estar no formato yyyy-MM-dd",
+      invalidEmail: "E-mail inválido",
+      passwordMinLength: "Senha deve ter ao menos 6 caracteres",
+    },
+    errors: {
+      loginFailed: "Não foi possível realizar login.",
+      registerFailed: "Não foi possível concluir o cadastro.",
+    },
+    login: {
+      title: "Entrar",
+      description: "Acesse sua conta para continuar no sistema.",
+      submit: "Entrar",
+      submitting: "Entrando...",
+      noAccount: "Ainda não tem uma conta?",
+      goToRegister: "Criar conta",
+    },
+    register: {
+      title: "Criar conta",
+      description: "Cadastre-se para começar a usar a plataforma.",
+      submit: "Criar conta",
+      submitting: "Criando conta...",
+      hasAccount: "Já possui conta?",
+      goToLogin: "Fazer login",
+    },
   },
   states: {
     loading: "Carregando...",
@@ -77,6 +131,8 @@ export const ptBRMessages = {
       "Não há ocorrências pendentes para o restante deste mês.",
     categorySummary: "Resumo por categoria (mês atual)",
     categorySummaryDescription: "Distribuição dos valores do mês por categoria.",
+    dayViewTitle: "Visualização por dia",
+    dayViewDescription: "Selecione um dia para ver os lançamentos retornados pelo backend.",
     noCategoryData: "Sem dados por categoria",
     noCategoryDataDescription:
       "O resumo por categoria aparecerá quando existirem ocorrências no mês atual.",
@@ -119,7 +175,14 @@ export const ptBRMessages = {
     updateSuccess: "Categoria atualizada com sucesso.",
     deleteSuccess: "Categoria excluída com sucesso.",
     deleteBlocked: "Esta categoria está em uso e não pode ser excluída.",
+    familyWriteBlocked:
+      "Você não tem permissão para alterar categorias do contexto familiar.",
     deleteConfirm: "Excluir categoria \"{name}\"?",
+    scope: {
+      GLOBAL: "Global",
+      FAMILY: "Familiar",
+      PERSONAL: "Pessoal",
+    },
     form: {
       name: "Nome",
       description: "Descrição",
@@ -130,6 +193,7 @@ export const ptBRMessages = {
       name: "Nome",
       description: "Descrição",
       color: "Cor",
+      scope: "Escopo",
       status: "Status",
       actions: "Ações",
     },
@@ -163,6 +227,8 @@ export const ptBRMessages = {
     loadErrorTitle: "Não foi possível carregar contas",
     loadDetailErrorTitle: "Não foi possível carregar conta",
     loadCategoriesErrorTitle: "Não foi possível carregar categorias",
+    familyWriteBlocked:
+      "Você não tem permissão para realizar esta ação em contas do contexto familiar.",
     createSuccess: "Conta criada com sucesso.",
     updateSuccess: "Conta atualizada com sucesso.",
     deleteSuccess: "Conta excluída com sucesso.",
@@ -174,6 +240,16 @@ export const ptBRMessages = {
     deleteConfirm: "Excluir conta \"{title}\"?",
     active: "Ativa",
     inactive: "Inativa",
+    notApplicable: "Não se aplica",
+    scope: {
+      PERSONAL: "Pessoal",
+      FAMILY: "Familiar",
+      VISIBLE_TO_ME: "Visíveis para mim",
+    },
+    ownershipType: {
+      PERSONAL: "Pessoal",
+      FAMILY: "Familiar",
+    },
     recurrence: {
       ONCE: "Única",
       DAILY: "Diária",
@@ -190,10 +266,17 @@ export const ptBRMessages = {
       startDate: "Data de início",
       endDate: "Data final (opcional)",
       category: "Categoria",
+      ownershipType: "Tipo de conta",
+      responsibleMember: "Membro responsável",
       notes: "Observações (opcional)",
       active: "Ativa",
+      invalidAmountFormat: "Valor deve estar no formato decimal (ex: 120.50)",
+      requiredResponsibleMember:
+        "Selecione o membro responsável para contas familiares",
       selectCategory: "Selecione uma categoria",
+      selectResponsibleMember: "Selecione um membro responsável",
       loadingOptions: "Carregando categorias...",
+      loadDependenciesErrorTitle: "Não foi possível carregar dados do formulário",
     },
     table: {
       title: "Título",
@@ -202,6 +285,8 @@ export const ptBRMessages = {
       baseAmount: "Valor base",
       startDate: "Data de início",
       endDate: "Data final",
+      scope: "Escopo",
+      responsibleMember: "Responsável",
       status: "Status",
       actions: "Ações",
     },
@@ -214,6 +299,12 @@ export const ptBRMessages = {
     description:
       "Gerencie ocorrências com contexto de conta/categoria e status do ciclo de vida.",
     searchPlaceholder: "Buscar ocorrências",
+    scope: {
+      PERSONAL: "Pessoal",
+      FAMILY: "Familiar",
+      VISIBLE_TO_ME: "Visíveis para mim",
+    },
+    filterAllCategories: "Todas as categorias",
     statusFilter: {
       all: "Todos os status",
       pending: "Pendente",
@@ -225,6 +316,8 @@ export const ptBRMessages = {
     createDescription: "Adicione uma nova ocorrência programada.",
     editTitle: "Editar ocorrência",
     editDescription: "Atualize os dados da ocorrência selecionada.",
+    detailTitle: "Detalhes da ocorrência",
+    detailDescription: "Visualização detalhada da ocorrência selecionada.",
     listTitle: "Lista de ocorrências",
     listDescription: "Todas as ocorrências retornadas pelo backend.",
     noOccurrences: "Ainda não há ocorrências",
@@ -237,6 +330,14 @@ export const ptBRMessages = {
     loadDetailErrorTitle: "Não foi possível carregar ocorrência",
     loadAccountsErrorTitle: "Não foi possível carregar contas",
     loadCategoriesErrorTitle: "Não foi possível carregar categorias",
+    operationForbidden:
+      "Você não tem permissão para operar esta ocorrência no contexto familiar.",
+    markPaidSuccess: "Ocorrência marcada como paga.",
+    unmarkPaidSuccess: "Pagamento da ocorrência desmarcado.",
+    overrideAmountSuccess: "Valor da ocorrência atualizado com sucesso.",
+    overrideAmountPrompt:
+      "Informe o novo valor da ocorrência (atual: {currentAmount}). Use formato decimal, ex: 120.50",
+    overrideAmountInvalid: "Valor inválido. Use formato decimal válido (ex: 120.50).",
     createSuccess: "Ocorrência criada com sucesso.",
     updateSuccess: "Ocorrência atualizada com sucesso.",
     deleteSuccess: "Ocorrência excluída com sucesso.",
@@ -251,6 +352,11 @@ export const ptBRMessages = {
       amount: "Valor",
       status: "Status",
       actions: "Ações",
+    },
+    actions: {
+      markPaid: "Marcar paga",
+      unmarkPaid: "Desmarcar",
+      overrideAmount: "Sobrescrever valor",
     },
     form: {
       description: "Descrição",
@@ -285,5 +391,155 @@ export const ptBRMessages = {
     noOccurrencesInMonth: "Nenhuma ocorrência neste mês.",
     occurrencesCount: "ocorrências",
     duePrefix: "Vence em",
+  },
+  onboarding: {
+    family: {
+      title: "Configuração familiar",
+      description:
+        "Você ainda não possui uma família vinculada. Vamos preparar essa etapa para continuar.",
+      nextStepTitle: "Próximo passo",
+      nextStepDescription:
+        "Na próxima etapa você poderá criar ou entrar em uma família para acessar a área principal.",
+      loadErrorTitle: "Não foi possível carregar seu contexto familiar",
+      form: {
+        description: "Crie sua primeira família para liberar a área principal do sistema.",
+        name: "Nome da família",
+        namePlaceholder: "Ex.: Família Silva",
+        submit: "Criar família",
+        submitting: "Criando família...",
+        submitErrorFallback: "Não foi possível criar a família agora.",
+      },
+      validation: {
+        requiredName: "Nome da família é obrigatório",
+        maxName: "Nome da família deve ter no máximo 80 caracteres",
+      },
+    },
+  },
+  family: {
+    title: "Gestão da família",
+    description:
+      "Visualize os membros atuais da família, com papel e status de participação.",
+    loadErrorTitle: "Não foi possível carregar dados da família",
+    membersTitle: "Membros da família",
+    membersDescription:
+      "Base para futuras ações de convite, troca de papel e gestão de permissões.",
+    noMembers: "Nenhum membro encontrado",
+    noMembersDescription:
+      "Quando houver membros vinculados, eles aparecerão nesta listagem.",
+    role: {
+      ADMIN: "Administrador",
+      MEMBER: "Membro",
+    },
+    status: {
+      PENDING_REGISTRATION: "Cadastro pendente",
+      ACTIVE: "Ativo",
+      REMOVED: "Removido",
+    },
+    table: {
+      name: "Nome",
+      email: "E-mail",
+      role: "Papel",
+      status: "Status",
+      actions: "Ações",
+    },
+    memberForm: {
+      openAction: "Adicionar membro",
+      title: "Adicionar membro pendente",
+      description: "Convide um novo membro para a família atual.",
+      pendingHint:
+        "A pessoa convidada ainda pode não ter conta. Ela aparecerá com status pendente até concluir o cadastro.",
+      fields: {
+        displayName: "Nome de exibição",
+        documentOptional: "Documento (opcional)",
+        emailOptional: "E-mail (opcional)",
+        phoneOptional: "Celular (opcional)",
+      },
+      submit: "Criar membro pendente",
+      submitting: "Criando membro...",
+      success: "Membro pendente criado com sucesso.",
+      errors: {
+        forbidden: "Você não tem permissão para adicionar membros nesta família.",
+        default: "Não foi possível adicionar o membro no momento.",
+      },
+      validation: {
+        requiredDisplayName: "Nome de exibição é obrigatório",
+        maxDisplayName: "Nome de exibição deve ter no máximo 120 caracteres",
+        invalidEmail: "E-mail inválido",
+      },
+    },
+    memberActions: {
+      manage: "Gerenciar",
+      promote: "Promover para ADMIN",
+      demote: "Rebaixar para MEMBER",
+      remove: "Remover",
+      panelDescription:
+        "Revise papel, status e permissões do membro selecionado antes de aplicar alterações.",
+      roleChangeConfirm:
+        "Deseja alterar o papel de \"{name}\" para \"{role}\"? Esta mudança afeta as permissões imediatamente.",
+      removeConfirm:
+        "Tem certeza que deseja remover \"{name}\" da família? Esta ação tem impacto imediato.",
+      rolePromoted: "Membro promovido para ADMIN com sucesso.",
+      roleDemoted: "Membro alterado para MEMBER com sucesso.",
+      removeSuccess: "Membro removido com sucesso.",
+      errors: {
+        forbidden: "Você não tem permissão para gerenciar membros nesta família.",
+        lastAdmin:
+          "Esta ação foi bloqueada porque não é permitido remover ou rebaixar o último ADMIN da família.",
+        default: "Não foi possível concluir esta ação agora.",
+      },
+    },
+    permissions: {
+      openAction: "Permissões",
+      title: "Permissões de {name}",
+      description:
+        "Defina quais ações este membro pode realizar no contexto da família.",
+      loading: "Carregando permissões...",
+      loadErrorTitle: "Não foi possível carregar permissões do membro",
+      submit: "Salvar permissões",
+      submitting: "Salvando permissões...",
+      success: "Permissões atualizadas com sucesso.",
+      fields: {
+        canViewFamilyAccounts: {
+          label: "Ver contas da família",
+          description: "Permite visualizar lançamentos e contas compartilhadas da família.",
+        },
+        canCreateFamilyAccounts: {
+          label: "Criar contas da família",
+          description: "Permite criar novas contas compartilhadas no ambiente familiar.",
+        },
+        canEditFamilyAccounts: {
+          label: "Editar contas da família",
+          description: "Permite alterar dados de contas e lançamentos da família.",
+        },
+        canDeleteFamilyAccounts: {
+          label: "Excluir contas da família",
+          description: "Permite remover contas e lançamentos da família.",
+        },
+        canMarkFamilyAccountsPaid: {
+          label: "Marcar contas da família como pagas",
+          description: "Permite alterar o status financeiro para pago.",
+        },
+        canManageCategories: {
+          label: "Gerenciar categorias",
+          description: "Permite criar, editar e remover categorias da família.",
+        },
+        canInviteMembers: {
+          label: "Convidar membros",
+          description: "Permite convidar novos membros para a família.",
+        },
+        canManageMembers: {
+          label: "Gerenciar membros",
+          description: "Permite alterar papel e remover membros da família.",
+        },
+        canViewOtherPersonalAccounts: {
+          label: "Ver contas pessoais de outros membros",
+          description: "Permite visualizar dados pessoais compartilhados por outros membros.",
+        },
+        canEditOtherPersonalAccounts: {
+          label: "Editar contas pessoais de outros membros",
+          description: "Permite editar dados pessoais de outros membros quando compartilhados.",
+        },
+      },
+    },
   },
 } as const;

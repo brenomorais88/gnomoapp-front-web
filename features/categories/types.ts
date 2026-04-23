@@ -1,10 +1,13 @@
 import { EntityBase, ListQueryParams, SortDirection } from "@/types/api/common";
 
+export type CategoryScope = "GLOBAL" | "FAMILY" | "PERSONAL";
+
 export type CategoryDto = EntityBase & {
   name: string;
   description?: string;
   color?: string;
   active?: boolean;
+  scope: CategoryScope;
 };
 
 export type CategoryListQuery = ListQueryParams & {

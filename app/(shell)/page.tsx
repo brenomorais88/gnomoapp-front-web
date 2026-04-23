@@ -1,20 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  addDays,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  parseISO,
-  startOfMonth,
-  startOfWeek,
-} from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarDays, List, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import Link from "next/link";
 import { SectionCard } from "@/components/shared/data/section-card";
 import { StatusBadge } from "@/components/shared/data/status-badge";
 import { SummaryCard } from "@/components/shared/data/summary-card";
@@ -25,9 +16,13 @@ import { AppPageContainer } from "@/components/shared/layout/app-page-container"
 import { PageHeader } from "@/components/shared/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { useCategoriesListQuery } from "@/features/categories/hooks";
-import { useDashboardSummaryQuery } from "@/features/dashboard/hooks";
-import { useOccurrencesListQuery } from "@/features/occurrences/hooks";
-import { OccurrenceDto } from "@/features/occurrences/types";
+import {
+  useDashboardCategorySummaryQuery,
+  useDashboardDayQuery,
+  useDashboardHomeQuery,
+  useDashboardNext12MonthsQuery,
+} from "@/features/dashboard/hooks";
+import { DashboardHomeOccurrenceDto } from "@/features/dashboard/types";
 import { getErrorMessage } from "@/lib/api/error";
 import { t } from "@/lib/i18n";
 
@@ -46,49 +41,52 @@ const categoryChartColors = [
   "#475569",
 ];
 
-type DashboardMode = "calendar" | "list";
+function parseAmount(value: unknown) {
+  const parsed =
+    typeof value === "number" ? value : Number.parseFloat(String(value ?? 0));
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
 
-function getMonthDays(monthDate: Date) {
-  const monthStart = startOfMonth(monthDate);
-  const monthEnd = endOfMonth(monthDate);
-  const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-  const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
-
-  const days: Date[] = [];
-  let cursor = gridStart;
-
-  while (cursor <= gridEnd) {
-    days.push(cursor);
-    cursor = addDays(cursor, 1);
+function normalizeStatus(value: unknown): "pending" | "paid" | "overdue" | "cancelled" | undefined {
+  if (typeof value !== "string") {
+    return undefined;
   }
 
-  return days;
+  switch (value.toUpperCase()) {
+    case "PENDING":
+      return "pending";
+    case "PAID":
+      return "paid";
+    case "OVERDUE":
+      return "overdue";
+    case "CANCELLED":
+      return "cancelled";
+    default:
+      return undefined;
+  }
 }
 
-function toDateSafe(value: string) {
-  const parsed = parseISO(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function getOccurrenceTone(occurrence: OccurrenceDto) {
-  if (occurrence.status === "paid") {
+function getOccurrenceTone(status?: string) {
+  const normalizedStatus = normalizeStatus(status);
+  if (normalizedStatus === "paid") {
     return "success" as const;
   }
 
-  if (occurrence.status === "overdue") {
+  if (normalizedStatus === "overdue") {
     return "danger" as const;
   }
 
-  if (occurrence.status === "pending") {
+  if (normalizedStatus === "pending") {
     return "warning" as const;
   }
 
   return "neutral" as const;
 }
 
-function getOccurrenceLabel(occurrence: OccurrenceDto) {
-  if (occurrence.status) {
-    return t(`occurrences.statusFilter.${occurrence.status}`);
+function getOccurrenceLabel(status?: string) {
+  const normalizedStatus = normalizeStatus(status);
+  if (normalizedStatus) {
+    return t(`occurrences.statusFilter.${normalizedStatus}`);
   }
 
   return t("common.unknown");
@@ -96,88 +94,19 @@ function getOccurrenceLabel(occurrence: OccurrenceDto) {
 
 export default function DashboardPage() {
   const now = useMemo(() => new Date(), []);
-  const [mode, setMode] = useState<DashboardMode>("calendar");
-  const [selectedDay, setSelectedDay] = useState<Date>(now);
-
-  const monthStart = useMemo(() => startOfMonth(now), [now]);
-  const monthEnd = useMemo(() => endOfMonth(now), [now]);
-
-  const monthOccurrencesQuery = useOccurrencesListQuery({
-    fromDate: format(monthStart, "yyyy-MM-dd"),
-    toDate: format(monthEnd, "yyyy-MM-dd"),
-  });
-
-  const overdueQuery = useOccurrencesListQuery({
-    status: "overdue",
-    size: 20,
-  });
-
-  const next7DaysQuery = useOccurrencesListQuery({
-    fromDate: format(now, "yyyy-MM-dd"),
-    toDate: format(addDays(now, 7), "yyyy-MM-dd"),
-    size: 50,
-  });
+  const [selectedDate, setSelectedDate] = useState(format(now, "yyyy-MM-dd"));
 
   const categoriesQuery = useCategoriesListQuery();
-  const dashboardSummaryQuery = useDashboardSummaryQuery();
+  const dashboardMonth = format(now, "yyyy-MM");
+  const dashboardHomeQuery = useDashboardHomeQuery(dashboardMonth);
+  const dashboardDayQuery = useDashboardDayQuery(selectedDate);
+  const categorySummaryQuery = useDashboardCategorySummaryQuery(dashboardMonth);
+  const projectionQuery = useDashboardNext12MonthsQuery(false);
 
-  const hasBaseError =
-    monthOccurrencesQuery.isError ||
-    overdueQuery.isError ||
-    next7DaysQuery.isError ||
-    categoriesQuery.isError;
-
-  const isBaseLoading =
-    monthOccurrencesQuery.isLoading ||
-    overdueQuery.isLoading ||
-    next7DaysQuery.isLoading ||
-    categoriesQuery.isLoading;
-
-  const monthOccurrences = useMemo(
-    () => monthOccurrencesQuery.data ?? [],
-    [monthOccurrencesQuery.data],
-  );
-  const overdueOccurrences = useMemo(
-    () => overdueQuery.data ?? [],
-    [overdueQuery.data],
-  );
-  const next7DaysOccurrences = useMemo(
-    () => next7DaysQuery.data ?? [],
-    [next7DaysQuery.data],
-  );
-
-  const pendingThisMonth = useMemo(() => {
-    return monthOccurrences
-      .filter((item) => item.status === "pending")
-      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
-  }, [monthOccurrences]);
-
-  const paidThisMonth = useMemo(() => {
-    return monthOccurrences
-      .filter((item) => item.status === "paid")
-      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
-  }, [monthOccurrences]);
-
-  const upcomingOccurrences = useMemo(() => {
-    const today = now.getTime();
-
-    return [...monthOccurrences]
-      .filter((item) => {
-        const dueDate = toDateSafe(item.dueDate);
-
-        if (!dueDate) {
-          return false;
-        }
-
-        return dueDate.getTime() >= today && item.status !== "paid";
-      })
-      .sort(
-        (a, b) =>
-          (toDateSafe(a.dueDate)?.getTime() ?? 0) -
-          (toDateSafe(b.dueDate)?.getTime() ?? 0),
-      )
-      .slice(0, 8);
-  }, [monthOccurrences, now]);
+  const dashboardHome = dashboardHomeQuery.data;
+  const overdueOccurrences = dashboardHome?.overdue ?? [];
+  const next7DaysOccurrences = dashboardHome?.next7Days ?? [];
+  const upcomingOccurrences = dashboardHome?.upcoming ?? [];
 
   const categoriesById = useMemo(() => {
     const map = new Map<string, string>();
@@ -190,338 +119,269 @@ export default function DashboardPage() {
   }, [categoriesQuery.data]);
 
   const categorySummaryData = useMemo(() => {
-    const categoryTotals = new Map<string, number>();
-
-    for (const occurrence of monthOccurrences) {
-      if (occurrence.status === "cancelled") {
-        continue;
-      }
-
-      const key = occurrence.categoryId ?? "uncategorized";
-      categoryTotals.set(key, (categoryTotals.get(key) ?? 0) + (occurrence.amount ?? 0));
-    }
-
-    return Array.from(categoryTotals.entries())
-      .map(([categoryId, total], index) => ({
-        categoryId,
-        name:
-          categoryId === "uncategorized"
-            ? t("common.unknown")
-            : (categoriesById.get(categoryId) ?? t("common.unknown")),
-        total,
+    return (categorySummaryQuery.data?.items ?? [])
+      .map((item, index) => ({
+        categoryId: item.categoryId ?? "uncategorized",
+        name: categoriesById.get(item.categoryId) ?? t("common.unknown"),
+        total: parseAmount(item.totalAmount),
         color: categoryChartColors[index % categoryChartColors.length],
       }))
       .sort((a, b) => b.total - a.total);
-  }, [categoriesById, monthOccurrences]);
+  }, [categoriesById, categorySummaryQuery.data?.items]);
 
-  const calendarDays = useMemo(() => getMonthDays(now), [now]);
-
-  const dayOccurrences = useMemo(() => {
-    return monthOccurrences.filter((occurrence) => {
-      const dueDate = toDateSafe(occurrence.dueDate);
-      return dueDate ? isSameDay(dueDate, selectedDay) : false;
-    });
-  }, [monthOccurrences, selectedDay]);
-
-  const summaryFromBackend = dashboardSummaryQuery.data;
-
-  const totalPending = summaryFromBackend?.totalPending ?? pendingThisMonth;
-  const totalPaid = summaryFromBackend?.totalPaid ?? paidThisMonth;
-  const overdueCount = summaryFromBackend?.overdueCount ?? overdueOccurrences.length;
+  const totalPending = parseAmount(dashboardHome?.totalPendingInMonth);
+  const totalPaid = parseAmount(dashboardHome?.totalPaidInMonth);
+  const overdueCount = overdueOccurrences.length;
+  const projectionTotal = (projectionQuery.data?.points ?? []).reduce(
+    (sum, item) => sum + parseAmount((item as { totalAmount?: unknown }).totalAmount),
+    0,
+  );
+  const selectedDayItems = (dashboardDayQuery.data?.items ?? []) as DashboardHomeOccurrenceDto[];
 
   return (
     <AppPageContainer className="ds-section-gap">
-      <PageHeader
-        title={t("dashboard.title")}
-        description={t("dashboard.description")}
-        actions={
-          <div className="flex gap-2">
-            <Button
-              variant={mode === "calendar" ? "default" : "outline"}
-              onClick={() => setMode("calendar")}
-            >
-              <CalendarDays className="size-4" />
-              {t("actions.calendar")}
-            </Button>
-            <Button
-              variant={mode === "list" ? "default" : "outline"}
-              onClick={() => setMode("list")}
-            >
-              <List className="size-4" />
-              {t("actions.list")}
-            </Button>
-          </div>
-        }
-      />
+      <PageHeader title={t("dashboard.title")} description={t("dashboard.description")} />
 
-      {hasBaseError ? (
-        <ErrorState
-          title={t("dashboard.couldNotLoadDashboard")}
-          description={
-            getErrorMessage(monthOccurrencesQuery.error) ||
-            getErrorMessage(overdueQuery.error) ||
-            getErrorMessage(next7DaysQuery.error) ||
-            getErrorMessage(categoriesQuery.error)
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          label={t("dashboard.overdueOccurrences")}
+          value={
+            dashboardHomeQuery.isLoading ? "..." : String(overdueCount)
           }
-          action={
-            <Button
-              variant="outline"
-              onClick={() => {
-                monthOccurrencesQuery.refetch();
-                overdueQuery.refetch();
-                next7DaysQuery.refetch();
-                categoriesQuery.refetch();
-                dashboardSummaryQuery.refetch();
-              }}
-            >
-              {t("actions.tryAgain")}
-            </Button>
+          hint={t("dashboard.overdueHint")}
+          icon={<TriangleAlert className="size-4 text-destructive" />}
+        />
+        <SummaryCard
+          label={t("dashboard.dueNext7Days")}
+          value={dashboardHomeQuery.isLoading ? "..." : String(next7DaysOccurrences.length)}
+          hint={t("dashboard.next7DaysHint")}
+        />
+        <SummaryCard
+          label={t("dashboard.pendingThisMonth")}
+          value={
+            dashboardHomeQuery.isLoading
+              ? "..."
+              : currencyFormatter.format(totalPending)
           }
         />
-      ) : isBaseLoading ? (
-        <LoadingState label={t("dashboard.loadingDashboard")} />
-      ) : (
-        <>
-          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <SummaryCard
-              label={t("dashboard.overdueOccurrences")}
-              value={String(overdueCount)}
-              hint={t("dashboard.overdueHint")}
-              icon={<TriangleAlert className="size-4 text-destructive" />}
+        <SummaryCard
+          label={t("dashboard.paidThisMonth")}
+          value={
+            dashboardHomeQuery.isLoading
+              ? "..."
+              : currencyFormatter.format(totalPaid)
+          }
+        />
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <SectionCard
+          title={t("dashboard.upcomingOccurrences")}
+          description={t("dashboard.upcomingOccurrencesDescription")}
+        >
+          {dashboardHomeQuery.isLoading ? (
+            <LoadingState label={t("dashboard.loadingDashboard")} className="min-h-24" />
+          ) : dashboardHomeQuery.isError ? (
+            <ErrorState
+              title={t("dashboard.couldNotLoadDashboard")}
+              description={getErrorMessage(dashboardHomeQuery.error)}
+              action={
+                <Button variant="outline" onClick={() => dashboardHomeQuery.refetch()}>
+                  {t("actions.tryAgain")}
+                </Button>
+              }
             />
-            <SummaryCard
-              label={t("dashboard.dueNext7Days")}
-              value={String(next7DaysOccurrences.length)}
-              hint={t("dashboard.next7DaysHint")}
+          ) : upcomingOccurrences.length === 0 ? (
+            <EmptyState
+              title={t("dashboard.noUpcomingOccurrences")}
+              description={t("dashboard.noUpcomingOccurrencesDescription")}
             />
-            <SummaryCard
-              label={t("dashboard.pendingThisMonth")}
-              value={currencyFormatter.format(totalPending)}
-            />
-            <SummaryCard
-              label={t("dashboard.paidThisMonth")}
-              value={currencyFormatter.format(totalPaid)}
-            />
-          </section>
-
-          <section className="grid gap-4 lg:grid-cols-2">
-            <SectionCard
-              title={t("dashboard.upcomingOccurrences")}
-              description={t("dashboard.upcomingOccurrencesDescription")}
-            >
-              {upcomingOccurrences.length === 0 ? (
-                <EmptyState
-                  title={t("dashboard.noUpcomingOccurrences")}
-                  description={t("dashboard.noUpcomingOccurrencesDescription")}
-                />
-              ) : (
-                <div className="space-y-2">
-                  {upcomingOccurrences.map((occurrence) => (
-                    <div
-                      key={occurrence.id}
-                      className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {occurrence.description}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("projection.duePrefix")} {format(toDateSafe(occurrence.dueDate) ?? now, "dd/MM")}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-foreground">
-                          {currencyFormatter.format(occurrence.amount ?? 0)}
-                        </p>
-                        <StatusBadge
-                          label={getOccurrenceLabel(occurrence)}
-                          tone={getOccurrenceTone(occurrence)}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </SectionCard>
-
-            <SectionCard
-              title={t("dashboard.categorySummary")}
-              description={t("dashboard.categorySummaryDescription")}
-            >
-              {categorySummaryData.length === 0 ? (
-                <EmptyState
-                  title={t("dashboard.noCategoryData")}
-                  description={t("dashboard.noCategoryDataDescription")}
-                />
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-[1.2fr,1fr]">
-                  <div className="h-56">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={categorySummaryData}
-                          dataKey="total"
-                          nameKey="name"
-                          innerRadius={60}
-                          outerRadius={92}
-                        >
-                          {categorySummaryData.map((entry) => (
-                            <Cell key={entry.categoryId} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value) =>
-                            currencyFormatter.format(Number(value ?? 0))
-                          }
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="space-y-2">
-                    {categorySummaryData.map((entry) => (
-                      <div
-                        key={entry.categoryId}
-                        className="flex items-center justify-between rounded-md border border-border/70 px-3 py-2"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="size-2.5 rounded-full"
-                            style={{ backgroundColor: entry.color }}
-                          />
-                          <span className="text-sm text-foreground">{entry.name}</span>
-                        </div>
-                        <span className="text-sm font-medium text-foreground">
-                          {currencyFormatter.format(entry.total)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </SectionCard>
-          </section>
-
-          {mode === "calendar" ? (
-            <section className="grid gap-4 lg:grid-cols-[2fr,1fr]">
-              <SectionCard
-                title={format(now, "MMMM yyyy", { locale: ptBR })}
-                description={t("dashboard.calendarMonthDescription")}
-              >
-                <div className="mb-3 grid grid-cols-7 text-center text-xs uppercase tracking-wide text-muted-foreground">
-                  {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => (
-                    <div key={day}>{day}</div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-7 gap-1">
-                  {calendarDays.map((day) => {
-                    const inCurrentMonth = isSameMonth(day, now);
-                    const isSelected = isSameDay(day, selectedDay);
-                    const hasItems = monthOccurrences.some((occurrence) => {
-                      const dueDate = toDateSafe(occurrence.dueDate);
-                      return dueDate ? isSameDay(dueDate, day) : false;
-                    });
-
-                    return (
-                      <button
-                        key={day.toISOString()}
-                        type="button"
-                        className={`ds-focus-ring flex min-h-16 flex-col items-start rounded-md border px-2 py-1.5 text-left transition-colors ${
-                          isSelected
-                            ? "border-primary bg-primary/10"
-                            : "border-border/70 bg-background hover:bg-muted"
-                        } ${inCurrentMonth ? "text-foreground" : "text-muted-foreground/60"}`}
-                        onClick={() => setSelectedDay(day)}
-                      >
-                        <span className="text-xs font-medium">{format(day, "d")}</span>
-                        {hasItems ? <span className="mt-1 size-1.5 rounded-full bg-primary" /> : null}
-                      </button>
-                    );
-                  })}
-                </div>
-              </SectionCard>
-
-              <SectionCard
-                title={`${t("dashboard.occurrencesOnDay")} ${format(selectedDay, "dd/MM")}`}
-                description={t("states.noData")}
-              >
-                {dayOccurrences.length === 0 ? (
-                  <EmptyState
-                    title={t("dashboard.noOccurrencesInDay")}
-                    description={t("dashboard.noOccurrencesInDayDescription")}
-                  />
-                ) : (
-                  <div className="space-y-2">
-                    {dayOccurrences.map((occurrence) => (
-                      <div
-                        key={occurrence.id}
-                        className="rounded-md border border-border/70 px-3 py-2"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-medium text-foreground">
-                            {occurrence.description}
-                          </p>
-                          <StatusBadge
-                            label={getOccurrenceLabel(occurrence)}
-                            tone={getOccurrenceTone(occurrence)}
-                          />
-                        </div>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {currencyFormatter.format(occurrence.amount ?? 0)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </SectionCard>
-            </section>
           ) : (
-            <SectionCard
-              title={`${t("dashboard.currentMonthList")} (${format(now, "MMMM", { locale: ptBR })})`}
-              description={t("dashboard.currentMonthListDescription")}
-            >
-              {monthOccurrences.length === 0 ? (
-                <EmptyState
-                  title={t("dashboard.noOccurrencesInMonth")}
-                  description={t("dashboard.noOccurrencesInMonthDescription")}
-                />
-              ) : (
-                <div className="space-y-2">
-                  {[...monthOccurrences]
-                    .sort(
-                      (a, b) =>
-                        (toDateSafe(a.dueDate)?.getTime() ?? 0) -
-                        (toDateSafe(b.dueDate)?.getTime() ?? 0),
-                    )
-                    .map((occurrence) => (
-                      <div
-                        key={occurrence.id}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/70 px-3 py-2"
-                      >
-                        <div>
-                          <p className="text-sm font-medium text-foreground">
-                            {occurrence.description}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {t("projection.duePrefix")} {format(toDateSafe(occurrence.dueDate) ?? now, "dd/MM")}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-foreground">
-                            {currencyFormatter.format(occurrence.amount ?? 0)}
-                          </p>
-                          <StatusBadge
-                            label={getOccurrenceLabel(occurrence)}
-                            tone={getOccurrenceTone(occurrence)}
-                          />
-                        </div>
-                      </div>
-                    ))}
+            <div className="space-y-2">
+              {upcomingOccurrences.map((occurrence) => (
+                <div
+                  key={occurrence.id}
+                  className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {occurrence.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("projection.duePrefix")}{" "}
+                      {format(new Date(occurrence.dueDate), "dd/MM")}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-foreground">
+                      {currencyFormatter.format(parseAmount(occurrence.amount))}
+                    </p>
+                    <StatusBadge
+                      label={getOccurrenceLabel(occurrence.status)}
+                      tone={getOccurrenceTone(occurrence.status)}
+                    />
+                  </div>
                 </div>
-              )}
-            </SectionCard>
+              ))}
+            </div>
           )}
-        </>
-      )}
+        </SectionCard>
+
+        <SectionCard
+          title={t("dashboard.categorySummary")}
+          description={t("dashboard.categorySummaryDescription")}
+        >
+          {categorySummaryQuery.isLoading ? (
+            <LoadingState label={t("states.loading")} className="min-h-24" />
+          ) : categorySummaryQuery.isError ? (
+            <ErrorState
+              title={t("dashboard.couldNotLoadDashboard")}
+              description={getErrorMessage(categorySummaryQuery.error)}
+              action={
+                <Button variant="outline" onClick={() => categorySummaryQuery.refetch()}>
+                  {t("actions.tryAgain")}
+                </Button>
+              }
+            />
+          ) : categorySummaryData.length === 0 ? (
+            <EmptyState
+              title={t("dashboard.noCategoryData")}
+              description={t("dashboard.noCategoryDataDescription")}
+            />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-[1.2fr,1fr]">
+              <div className="h-56 min-w-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categorySummaryData}
+                      dataKey="total"
+                      nameKey="name"
+                      innerRadius={60}
+                      outerRadius={92}
+                    >
+                      {categorySummaryData.map((entry) => (
+                        <Cell key={entry.categoryId} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) =>
+                        currencyFormatter.format(Number(value ?? 0))
+                      }
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="space-y-2">
+                {categorySummaryData.map((entry) => (
+                  <div
+                    key={entry.categoryId}
+                    className="flex items-center justify-between rounded-md border border-border/70 px-3 py-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="size-2.5 rounded-full"
+                        style={{ backgroundColor: entry.color }}
+                      />
+                      <span className="text-sm text-foreground">{entry.name}</span>
+                    </div>
+                    <span className="text-sm font-medium text-foreground">
+                      {currencyFormatter.format(entry.total)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </SectionCard>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <SectionCard
+          title={t("dashboard.dayViewTitle")}
+          description={t("dashboard.dayViewDescription")}
+        >
+          <div className="mb-4">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(event) => setSelectedDate(event.target.value)}
+              className="ds-focus-ring h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+            />
+          </div>
+          {dashboardDayQuery.isLoading ? (
+            <LoadingState label={t("states.loading")} className="min-h-24" />
+          ) : dashboardDayQuery.isError ? (
+            <ErrorState
+              title={t("dashboard.couldNotLoadDashboard")}
+              description={getErrorMessage(dashboardDayQuery.error)}
+              action={
+                <Button variant="outline" onClick={() => dashboardDayQuery.refetch()}>
+                  {t("actions.tryAgain")}
+                </Button>
+              }
+            />
+          ) : selectedDayItems.length === 0 ? (
+            <EmptyState
+              title={t("dashboard.noOccurrencesInDay")}
+              description={t("dashboard.noOccurrencesInDayDescription")}
+            />
+          ) : (
+            <div className="space-y-2">
+              {selectedDayItems.map((occurrence) => (
+                <div key={occurrence.id} className="rounded-md border border-border/70 px-3 py-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-foreground">{occurrence.title}</p>
+                    <StatusBadge
+                      label={getOccurrenceLabel(occurrence.status)}
+                      tone={getOccurrenceTone(occurrence.status)}
+                    />
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {currencyFormatter.format(parseAmount(occurrence.amount))}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </SectionCard>
+
+        <SectionCard
+          title={t("projection.totalTitle")}
+          description={t("projection.totalDescription")}
+          action={
+            <Link
+              href="/next-12-months"
+              className="ds-focus-ring inline-flex items-center rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+            >
+              {t("navigation.next12Months")}
+            </Link>
+          }
+        >
+          {projectionQuery.isLoading ? (
+            <LoadingState label={t("projection.loading")} className="min-h-24" />
+          ) : projectionQuery.isError ? (
+            <ErrorState
+              title={t("projection.loadErrorTitle")}
+              description={getErrorMessage(projectionQuery.error)}
+              action={
+                <Button variant="outline" onClick={() => projectionQuery.refetch()}>
+                  {t("actions.tryAgain")}
+                </Button>
+              }
+            />
+          ) : (
+            <div className="space-y-2">
+              <p className="text-3xl font-semibold text-foreground">
+                {currencyFormatter.format(projectionTotal)}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {format(now, "MMMM yyyy", { locale: ptBR })}
+              </p>
+            </div>
+          )}
+        </SectionCard>
+      </section>
     </AppPageContainer>
   );
 }

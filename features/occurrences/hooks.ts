@@ -1,16 +1,15 @@
 "use client";
 
 import {
-  createOccurrence,
-  deleteOccurrence,
   getOccurrenceById,
   listOccurrences,
-  updateOccurrence,
+  markOccurrencePaid,
+  overrideOccurrenceAmount,
+  unmarkOccurrencePaid,
 } from "@/features/occurrences/api";
 import {
-  CreateOccurrenceInput,
+  OverrideOccurrenceAmountInput,
   OccurrenceListQuery,
-  UpdateOccurrenceInput,
 } from "@/features/occurrences/types";
 import { useApiMutation } from "@/hooks/api/use-api-mutation";
 import { useApiQuery } from "@/hooks/api/use-api-query";
@@ -31,24 +30,24 @@ export function useOccurrenceDetailQuery(id: string) {
   });
 }
 
-export function useCreateOccurrenceMutation() {
+export function useMarkOccurrencePaidMutation() {
   return useApiMutation({
-    mutationFn: (payload: CreateOccurrenceInput) => createOccurrence(payload),
-    invalidateQueryKeys: [queryKeys.occurrences.root],
+    mutationFn: (id: string) => markOccurrencePaid(id),
+    invalidateQueryKeys: [queryKeys.occurrences.root, queryKeys.dashboard.root],
   });
 }
 
-export function useUpdateOccurrenceMutation() {
+export function useUnmarkOccurrencePaidMutation() {
   return useApiMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UpdateOccurrenceInput }) =>
-      updateOccurrence({ id, payload }),
-    invalidateQueryKeys: [queryKeys.occurrences.root],
+    mutationFn: (id: string) => unmarkOccurrencePaid(id),
+    invalidateQueryKeys: [queryKeys.occurrences.root, queryKeys.dashboard.root],
   });
 }
 
-export function useDeleteOccurrenceMutation() {
+export function useOverrideOccurrenceAmountMutation() {
   return useApiMutation({
-    mutationFn: (id: string) => deleteOccurrence(id),
-    invalidateQueryKeys: [queryKeys.occurrences.root],
+    mutationFn: (payload: OverrideOccurrenceAmountInput) =>
+      overrideOccurrenceAmount(payload),
+    invalidateQueryKeys: [queryKeys.occurrences.root, queryKeys.dashboard.root],
   });
 }

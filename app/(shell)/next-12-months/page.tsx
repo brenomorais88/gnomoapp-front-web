@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { addMonths, endOfMonth, format, startOfMonth } from "date-fns";
+import { addMonths, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { SectionCard } from "@/components/shared/data/section-card";
@@ -12,7 +12,7 @@ import { LoadingState } from "@/components/shared/feedback/loading-state";
 import { AppPageContainer } from "@/components/shared/layout/app-page-container";
 import { PageHeader } from "@/components/shared/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { useOccurrencesListQuery } from "@/features/occurrences/hooks";
+import { useDashboardNext12MonthsQuery } from "@/features/dashboard/hooks";
 import { getErrorMessage } from "@/lib/api/error";
 import { t } from "@/lib/i18n";
 
@@ -37,73 +37,46 @@ type MonthProjection = {
 
 export default function Next12MonthsPage() {
   const now = useMemo(() => new Date(), []);
-  const rangeStart = useMemo(() => startOfMonth(now), [now]);
-  const rangeEnd = useMemo(() => endOfMonth(addMonths(now, 11)), [now]);
+  const rangeStart = now;
+  const rangeEnd = addMonths(now, 11);
 
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
 
-  const occurrencesQuery = useOccurrencesListQuery({
-    fromDate: format(rangeStart, "yyyy-MM-dd"),
-    toDate: format(rangeEnd, "yyyy-MM-dd"),
-    size: 500,
-  });
+  const projectionQuery = useDashboardNext12MonthsQuery(true);
 
   const projectionMonths = useMemo<MonthProjection[]>(() => {
-    const source = occurrencesQuery.data ?? [];
-
-    const months: MonthProjection[] = Array.from({ length: 12 }).map((_, index) => {
-      const monthDate = addMonths(rangeStart, index);
+    return (projectionQuery.data?.points ?? []).map((rawPoint) => {
+      const point = rawPoint as Record<string, unknown>;
+      const month = String(point.month ?? "");
+      const total = Number.parseFloat(String(point.totalAmount ?? 0));
+      const details = Array.isArray(point.items) ? point.items : [];
 
       return {
-        key: format(monthDate, "yyyy-MM"),
-        label: format(monthDate, "MMMM yyyy", { locale: ptBR }),
-        total: 0,
-        count: 0,
-        items: [],
+        key: month,
+        label: month
+          ? format(new Date(`${month}-01`), "MMMM yyyy", { locale: ptBR })
+          : t("common.unknown"),
+        total: Number.isNaN(total) ? 0 : total,
+        count: Number(point.count ?? details.length ?? 0),
+        items: details.map((rawItem) => {
+          const item = rawItem as Record<string, unknown>;
+          return {
+            id: String(item.id ?? ""),
+            description: String(item.description ?? item.title ?? ""),
+            dueDate: String(item.dueDate ?? ""),
+            amount: Number.parseFloat(String(item.amount ?? 0)) || 0,
+            status: item.status ? String(item.status).toLowerCase() : undefined,
+          };
+        }),
       };
     });
-
-    const monthByKey = new Map(months.map((month) => [month.key, month]));
-
-    for (const occurrence of source) {
-      if (occurrence.status === "cancelled") {
-        continue;
-      }
-
-      const dueDate = new Date(occurrence.dueDate);
-
-      if (Number.isNaN(dueDate.getTime())) {
-        continue;
-      }
-
-      const monthKey = format(dueDate, "yyyy-MM");
-      const targetMonth = monthByKey.get(monthKey);
-
-      if (!targetMonth) {
-        continue;
-      }
-
-      targetMonth.total += occurrence.amount ?? 0;
-      targetMonth.count += 1;
-      targetMonth.items.push({
-        id: occurrence.id,
-        description: occurrence.description,
-        dueDate: occurrence.dueDate,
-        amount: occurrence.amount ?? 0,
-        status: occurrence.status,
-      });
-    }
-
-    for (const month of months) {
-      month.items.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-    }
-
-    return months;
-  }, [occurrencesQuery.data, rangeStart]);
+  }, [projectionQuery.data?.points]);
 
   const chartData = useMemo(() => {
     return projectionMonths.map((month) => ({
-      month: format(new Date(`${month.key}-01`), "MMM", { locale: ptBR }),
+      month: month.key
+        ? format(new Date(`${month.key}-01`), "MMM", { locale: ptBR })
+        : t("common.unknown"),
       total: month.total,
     }));
   }, [projectionMonths]);
@@ -117,14 +90,14 @@ export default function Next12MonthsPage() {
     <AppPageContainer className="ds-section-gap">
       <PageHeader title={t("projection.title")} description={t("projection.description")} />
 
-      {occurrencesQuery.isLoading ? (
+      {projectionQuery.isLoading ? (
         <LoadingState label={t("projection.loading")} />
-      ) : occurrencesQuery.isError ? (
+      ) : projectionQuery.isError ? (
         <ErrorState
           title={t("projection.loadErrorTitle")}
-          description={getErrorMessage(occurrencesQuery.error)}
+          description={getErrorMessage(projectionQuery.error)}
           action={
-            <Button variant="outline" onClick={() => occurrencesQuery.refetch()}>
+            <Button variant="outline" onClick={() => projectionQuery.refetch()}>
               {t("actions.tryAgain")}
             </Button>
           }
@@ -138,7 +111,7 @@ export default function Next12MonthsPage() {
         <>
           <section className="grid gap-4 lg:grid-cols-[1.4fr,1fr]">
             <SectionCard title={t("projection.chartTitle")} description={t("projection.chartDescription")}>
-              <div className="h-64">
+              <div className="h-64 min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>
                     <XAxis dataKey="month" stroke="#64748B" fontSize={12} />

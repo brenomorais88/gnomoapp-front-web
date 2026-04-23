@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/shared/data/status-badge";
 import { Toolbar } from "@/components/shared/data/toolbar";
 import { EmptyState } from "@/components/shared/feedback/empty-state";
 import { ErrorState } from "@/components/shared/feedback/error-state";
+import { InlineFeedback } from "@/components/shared/feedback/inline-feedback";
 import { LoadingState } from "@/components/shared/feedback/loading-state";
 import { AppPageContainer } from "@/components/shared/layout/app-page-container";
 import { PageHeader } from "@/components/shared/layout/page-header";
@@ -24,6 +25,7 @@ import { CategoryFormValues } from "@/features/categories/schema";
 import { CategoryDto } from "@/features/categories/types";
 import { ApiError, getErrorMessage } from "@/lib/api/error";
 import { t } from "@/lib/i18n";
+import { useAuthorization } from "@/hooks/auth/use-authorization";
 
 const DEFAULT_COLOR = "#2563EB";
 
@@ -50,20 +52,11 @@ function getDeleteErrorMessage(error: unknown) {
 }
 
 function FeedbackBanner({ feedback }: { feedback: Feedback }) {
-  return (
-    <div
-      className={`rounded-lg border px-3 py-2 text-sm ${
-        feedback.tone === "success"
-          ? "border-success/30 bg-success/10 text-success"
-          : "border-destructive/30 bg-destructive/10 text-destructive"
-      }`}
-    >
-      {feedback.message}
-    </div>
-  );
+  return <InlineFeedback tone={feedback.tone} message={feedback.message} />;
 }
 
 export default function CategoriesPage() {
+  const authorization = useAuthorization();
   const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
@@ -92,6 +85,14 @@ export default function CategoriesPage() {
       );
     });
   }, [categories, search]);
+
+  function canWriteCategory(category: CategoryDto) {
+    if (category.scope !== "FAMILY") {
+      return true;
+    }
+
+    return authorization.canManageCategories;
+  }
 
   async function handleCreate(values: CategoryFormValues) {
     try {
@@ -162,16 +163,18 @@ export default function CategoriesPage() {
           />
         }
         right={
-          <Button
-            onClick={() => {
-              setIsCreateOpen(true);
-              setEditingCategoryId(null);
-              setFeedback(null);
-            }}
-          >
-            <Plus className="size-4" />
-            {t("actions.newCategory")}
-          </Button>
+          authorization.canManageCategories ? (
+            <Button
+              onClick={() => {
+                setIsCreateOpen(true);
+                setEditingCategoryId(null);
+                setFeedback(null);
+              }}
+            >
+              <Plus className="size-4" />
+              {t("actions.newCategory")}
+            </Button>
+          ) : null
         }
       />
 
@@ -204,6 +207,11 @@ export default function CategoriesPage() {
             <CategoryForm
               mode="edit"
               isSubmitting={updateMutation.isPending}
+              isReadOnly={
+                editingCategoryQuery.data
+                  ? !canWriteCategory(editingCategoryQuery.data)
+                  : false
+              }
               initialValues={{
                 name: editingCategoryQuery.data?.name ?? "",
                 description: editingCategoryQuery.data?.description ?? "",
@@ -251,6 +259,7 @@ export default function CategoriesPage() {
                 <th className="px-4 py-3 font-medium">{t("categories.table.name")}</th>
                 <th className="px-4 py-3 font-medium">{t("categories.table.description")}</th>
                 <th className="px-4 py-3 font-medium">{t("categories.table.color")}</th>
+                <th className="px-4 py-3 font-medium">{t("categories.table.scope")}</th>
                 <th className="px-4 py-3 font-medium">{t("categories.table.status")}</th>
                 <th className="px-4 py-3 text-right font-medium">{t("categories.table.actions")}</th>
               </tr>
@@ -275,6 +284,18 @@ export default function CategoriesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge
+                      label={t(`categories.scope.${category.scope}`)}
+                      tone={
+                        category.scope === "GLOBAL"
+                          ? "info"
+                          : category.scope === "FAMILY"
+                            ? "warning"
+                            : "neutral"
+                      }
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge
                       label={category.active === false ? t("categories.inactive") : t("categories.active")}
                       tone={category.active === false ? "neutral" : "success"}
                     />
@@ -284,7 +305,15 @@ export default function CategoriesPage() {
                       <Button
                         variant="outline"
                         size="sm"
+                        disabled={!canWriteCategory(category)}
                         onClick={() => {
+                          if (!canWriteCategory(category)) {
+                            setFeedback({
+                              tone: "danger",
+                              message: t("categories.familyWriteBlocked"),
+                            });
+                            return;
+                          }
                           setEditingCategoryId(category.id);
                           setIsCreateOpen(false);
                           setFeedback(null);
@@ -296,8 +325,8 @@ export default function CategoriesPage() {
                       <Button
                         variant="destructive"
                         size="sm"
+                        disabled={deleteMutation.isPending || !canWriteCategory(category)}
                         onClick={() => handleDelete(category)}
-                        disabled={deleteMutation.isPending}
                       >
                         <Trash2 className="size-3.5" />
                         {t("actions.delete")}

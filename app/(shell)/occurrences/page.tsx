@@ -1,31 +1,39 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, Eye, RefreshCw } from "lucide-react";
 import { DataTable } from "@/components/shared/data/data-table";
 import { SectionCard } from "@/components/shared/data/section-card";
 import { StatusBadge } from "@/components/shared/data/status-badge";
 import { Toolbar } from "@/components/shared/data/toolbar";
+import { ViewScopeSelector } from "@/components/shared/filters/view-scope-selector";
 import { EmptyState } from "@/components/shared/feedback/empty-state";
 import { ErrorState } from "@/components/shared/feedback/error-state";
+import { InlineFeedback } from "@/components/shared/feedback/inline-feedback";
 import { LoadingState } from "@/components/shared/feedback/loading-state";
 import { AppPageContainer } from "@/components/shared/layout/app-page-container";
 import { PageHeader } from "@/components/shared/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { useAccountsListQuery } from "@/features/accounts/hooks";
 import { useCategoriesListQuery } from "@/features/categories/hooks";
-import { OccurrenceForm } from "@/features/occurrences/components/occurrence-form";
 import {
-  useCreateOccurrenceMutation,
-  useDeleteOccurrenceMutation,
   useOccurrenceDetailQuery,
   useOccurrencesListQuery,
-  useUpdateOccurrenceMutation,
+  useMarkOccurrencePaidMutation,
+  useOverrideOccurrenceAmountMutation,
+  useUnmarkOccurrencePaidMutation,
 } from "@/features/occurrences/hooks";
-import { OccurrenceFormValues } from "@/features/occurrences/schema";
-import { OccurrenceDto, OccurrenceStatus } from "@/features/occurrences/types";
+import {
+  OccurrenceDto,
+  OccurrenceListQuery,
+  OccurrenceStatus,
+} from "@/features/occurrences/types";
+import { AccountListScope } from "@/features/accounts/types";
+import { occurrenceOverrideSchema } from "@/features/occurrences/schema";
+import { useAuthorization } from "@/hooks/auth/use-authorization";
 import { ApiError, getErrorMessage } from "@/lib/api/error";
 import { t } from "@/lib/i18n";
+import { useViewScope } from "@/hooks/view/use-view-scope";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -45,17 +53,6 @@ const statusOptions: { label: string; value: "all" | OccurrenceStatus }[] = [
   { label: t("occurrences.statusFilter.cancelled"), value: "cancelled" },
 ];
 
-function toPayload(values: OccurrenceFormValues) {
-  return {
-    description: values.description.trim(),
-    amount: values.amount,
-    dueDate: values.dueDate,
-    accountId: values.accountId || undefined,
-    categoryId: values.categoryId || undefined,
-    status: values.status,
-  };
-}
-
 function getStatusTone(status?: string) {
   if (status === "paid") {
     return "success" as const;
@@ -72,14 +69,6 @@ function getStatusTone(status?: string) {
   return "neutral" as const;
 }
 
-function getDeleteErrorMessage(error: unknown) {
-  if (error instanceof ApiError && error.status === 409) {
-    return t("occurrences.deleteBlocked");
-  }
-
-  return getErrorMessage(error, t("occurrences.loadErrorTitle"));
-}
-
 function formatDate(value: string) {
   const date = new Date(value);
 
@@ -90,108 +79,165 @@ function formatDate(value: string) {
   return date.toLocaleDateString("pt-BR");
 }
 
+function sortOccurrences(items: OccurrenceDto[]) {
+  return [...items].sort((a, b) => {
+    const aTime = new Date(a.dueDate).getTime();
+    const bTime = new Date(b.dueDate).getTime();
+    return aTime - bTime;
+  });
+}
+
 export default function OccurrencesPage() {
-  const [search, setSearch] = useState("");
+  const authorization = useAuthorization();
+  const [textFilter, setTextFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | OccurrenceStatus>("all");
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingOccurrenceId, setEditingOccurrenceId] = useState<string | null>(null);
+  const [categoryIdFilter, setCategoryIdFilter] = useState("");
+  const [startDateFilter, setStartDateFilter] = useState("");
+  const [endDateFilter, setEndDateFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
+  const [selectedOccurrenceId, setSelectedOccurrenceId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const { scope: scopeFilter, setScope: setScopeFilter, label: scopeLabel } = useViewScope();
 
-  const occurrencesQuery = useOccurrencesListQuery();
+  const listParams = useMemo<OccurrenceListQuery>(
+    () => ({
+      scope: scopeFilter,
+      status: statusFilter === "all" ? undefined : statusFilter,
+      categoryId: categoryIdFilter || undefined,
+      text: textFilter || undefined,
+      startDate: startDateFilter || undefined,
+      endDate: endDateFilter || undefined,
+      month: monthFilter || undefined,
+      size: 300,
+    }),
+    [
+      categoryIdFilter,
+      endDateFilter,
+      monthFilter,
+      scopeFilter,
+      startDateFilter,
+      statusFilter,
+      textFilter,
+    ],
+  );
+
+  const occurrencesQuery = useOccurrencesListQuery(listParams);
   const categoriesQuery = useCategoriesListQuery({ size: 300 });
-  const accountsQuery = useAccountsListQuery({ size: 300 });
-  const createMutation = useCreateOccurrenceMutation();
-  const updateMutation = useUpdateOccurrenceMutation();
-  const deleteMutation = useDeleteOccurrenceMutation();
-  const editingOccurrenceQuery = useOccurrenceDetailQuery(editingOccurrenceId ?? "");
+  const accountsQuery = useAccountsListQuery({ size: 300, scope: scopeFilter });
+  const markPaidMutation = useMarkOccurrencePaidMutation();
+  const unmarkPaidMutation = useUnmarkOccurrencePaidMutation();
+  const overrideAmountMutation = useOverrideOccurrenceAmountMutation();
+  const detailQuery = useOccurrenceDetailQuery(selectedOccurrenceId ?? "");
 
-  const occurrences = useMemo(() => occurrencesQuery.data ?? [], [occurrencesQuery.data]);
+  const occurrences = useMemo(
+    () => sortOccurrences(occurrencesQuery.data ?? []),
+    [occurrencesQuery.data],
+  );
 
   const categoriesById = useMemo(() => {
     const map = new Map<string, string>();
-
     for (const item of categoriesQuery.data ?? []) {
       map.set(item.id, item.name);
     }
-
     return map;
   }, [categoriesQuery.data]);
 
   const accountsById = useMemo(() => {
     const map = new Map<string, string>();
-
     for (const item of accountsQuery.data ?? []) {
       map.set(item.id, item.title);
     }
-
     return map;
   }, [accountsQuery.data]);
 
-  const filteredOccurrences = useMemo(() => {
-    const normalizedSearch = search.toLowerCase().trim();
-
-    return occurrences.filter((item) => {
-      if (statusFilter !== "all" && item.status !== statusFilter) {
-        return false;
-      }
-
-      if (!normalizedSearch) {
-        return true;
-      }
-
-      const accountTitle = item.accountId ? accountsById.get(item.accountId) ?? "" : "";
-      const categoryName = item.categoryId ? categoriesById.get(item.categoryId) ?? "" : "";
-
-      return (
-        item.description.toLowerCase().includes(normalizedSearch) ||
-        accountTitle.toLowerCase().includes(normalizedSearch) ||
-        categoryName.toLowerCase().includes(normalizedSearch)
-      );
-    });
-  }, [accountsById, categoriesById, occurrences, search, statusFilter]);
-
   const isBaseLoading =
     occurrencesQuery.isLoading || categoriesQuery.isLoading || accountsQuery.isLoading;
-  const baseError =
-    occurrencesQuery.error ?? categoriesQuery.error ?? accountsQuery.error;
+  const baseError = occurrencesQuery.error ?? categoriesQuery.error ?? accountsQuery.error;
 
-  async function handleCreate(values: OccurrenceFormValues) {
-    try {
-      await createMutation.mutateAsync(toPayload(values));
-      setFeedback({ tone: "success", message: t("occurrences.createSuccess") });
-      setIsCreateOpen(false);
-    } catch (error) {
-      setFeedback({ tone: "danger", message: getErrorMessage(error, t("occurrences.loadErrorTitle")) });
+  function canOperateOccurrence(item: OccurrenceDto) {
+    if (item.scope !== "FAMILY") {
+      return true;
     }
+
+    return authorization.canMarkFamilyAccountPaid || authorization.canEditFamilyAccount;
   }
 
-  async function handleEdit(values: OccurrenceFormValues) {
-    if (!editingOccurrenceId) {
+  function parseOverrideAmountInput(input: string) {
+    const parsed = occurrenceOverrideSchema.safeParse({ amount: input });
+    if (!parsed.success) {
+      return null;
+    }
+
+    return parsed.data.amount.toFixed(2);
+  }
+
+  function getOperationErrorMessage(error: unknown) {
+    if (error instanceof ApiError && error.status === 403) {
+      return t("occurrences.operationForbidden");
+    }
+
+    return getErrorMessage(error, t("occurrences.loadErrorTitle"));
+  }
+
+  async function handleMarkPaid(item: OccurrenceDto) {
+    if (!canOperateOccurrence(item)) {
+      setFeedback({ tone: "danger", message: t("occurrences.operationForbidden") });
       return;
     }
 
     try {
-      await updateMutation.mutateAsync({
-        id: editingOccurrenceId,
-        payload: toPayload(values),
+      await markPaidMutation.mutateAsync(item.id);
+      setFeedback({ tone: "success", message: t("occurrences.markPaidSuccess") });
+    } catch (error) {
+      setFeedback({ tone: "danger", message: getOperationErrorMessage(error) });
+    }
+  }
+
+  async function handleUnmarkPaid(item: OccurrenceDto) {
+    if (!canOperateOccurrence(item)) {
+      setFeedback({ tone: "danger", message: t("occurrences.operationForbidden") });
+      return;
+    }
+
+    try {
+      await unmarkPaidMutation.mutateAsync(item.id);
+      setFeedback({ tone: "success", message: t("occurrences.unmarkPaidSuccess") });
+    } catch (error) {
+      setFeedback({ tone: "danger", message: getOperationErrorMessage(error) });
+    }
+  }
+
+  async function handleOverrideAmount(item: OccurrenceDto) {
+    if (!canOperateOccurrence(item)) {
+      setFeedback({ tone: "danger", message: t("occurrences.operationForbidden") });
+      return;
+    }
+
+    const userInput = window.prompt(
+      t("occurrences.overrideAmountPrompt", {
+        values: { currentAmount: String(item.amount ?? 0) },
+      }),
+    );
+
+    if (!userInput) {
+      return;
+    }
+
+    const normalizedAmount = parseOverrideAmountInput(userInput);
+
+    if (!normalizedAmount) {
+      setFeedback({ tone: "danger", message: t("occurrences.overrideAmountInvalid") });
+      return;
+    }
+
+    try {
+      await overrideAmountMutation.mutateAsync({
+        id: item.id,
+        amount: normalizedAmount,
       });
-      setFeedback({ tone: "success", message: t("occurrences.updateSuccess") });
-      setEditingOccurrenceId(null);
+      setFeedback({ tone: "success", message: t("occurrences.overrideAmountSuccess") });
     } catch (error) {
-      setFeedback({ tone: "danger", message: getErrorMessage(error, t("occurrences.loadDetailErrorTitle")) });
-    }
-  }
-
-  async function handleDelete(item: OccurrenceDto) {
-    if (!window.confirm(t("occurrences.deleteConfirm", { values: { description: item.description } }))) {
-      return;
-    }
-
-    try {
-      await deleteMutation.mutateAsync(item.id);
-      setFeedback({ tone: "success", message: t("occurrences.deleteSuccess") });
-    } catch (error) {
-      setFeedback({ tone: "danger", message: getDeleteErrorMessage(error) });
+      setFeedback({ tone: "danger", message: getOperationErrorMessage(error) });
     }
   }
 
@@ -203,30 +249,31 @@ export default function OccurrencesPage() {
       />
 
       {feedback ? (
-        <div
-          className={`rounded-lg border px-3 py-2 text-sm ${
-            feedback.tone === "success"
-              ? "border-success/30 bg-success/10 text-success"
-              : "border-destructive/30 bg-destructive/10 text-destructive"
-          }`}
-        >
-          {feedback.message}
-        </div>
+        <InlineFeedback tone={feedback.tone} message={feedback.message} />
       ) : null}
+
+      <SectionCard
+        title={t("viewScope.currentContextTitle")}
+        description={t("viewScope.currentContextDescription", { values: { context: scopeLabel } })}
+      >
+        <ViewScopeSelector value={scopeFilter} onChange={setScopeFilter} />
+      </SectionCard>
 
       <Toolbar
         left={
-          <>
+          <div className="grid w-full gap-2 md:grid-cols-2 xl:grid-cols-4">
             <input
-              className="ds-focus-ring h-9 min-w-[220px] rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground"
+              className="ds-focus-ring h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground"
               placeholder={t("occurrences.searchPlaceholder")}
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              value={textFilter}
+              onChange={(event) => setTextFilter(event.target.value)}
             />
             <select
               className="ds-focus-ring h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
               value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value as "all" | OccurrenceStatus)}
+              onChange={(event) =>
+                setStatusFilter(event.target.value as "all" | OccurrenceStatus)
+              }
             >
               {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -234,67 +281,120 @@ export default function OccurrencesPage() {
                 </option>
               ))}
             </select>
-          </>
-        }
-        right={
-          <Button
-            onClick={() => {
-              setIsCreateOpen(true);
-              setEditingOccurrenceId(null);
-              setFeedback(null);
-            }}
-          >
-            <Plus className="size-4" />
-            {t("actions.newOccurrence")}
-          </Button>
+            <select
+              className="ds-focus-ring h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+              value={categoryIdFilter}
+              onChange={(event) => setCategoryIdFilter(event.target.value)}
+            >
+              <option value="">{t("occurrences.filterAllCategories")}</option>
+              {(categoriesQuery.data ?? []).map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            <input
+              type="date"
+              className="ds-focus-ring h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+              value={startDateFilter}
+              onChange={(event) => setStartDateFilter(event.target.value)}
+            />
+            <input
+              type="date"
+              className="ds-focus-ring h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+              value={endDateFilter}
+              onChange={(event) => setEndDateFilter(event.target.value)}
+            />
+            <input
+              type="month"
+              className="ds-focus-ring h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+              value={monthFilter}
+              onChange={(event) => setMonthFilter(event.target.value)}
+            />
+          </div>
         }
       />
 
-      {isCreateOpen ? (
-        <SectionCard title={t("occurrences.createTitle")} description={t("occurrences.createDescription")}>
-          <OccurrenceForm
-            mode="create"
-            isSubmitting={createMutation.isPending}
-            onCancel={() => setIsCreateOpen(false)}
-            onSubmit={handleCreate}
-          />
-        </SectionCard>
-      ) : null}
-
-      {editingOccurrenceId ? (
-        <SectionCard title={t("occurrences.editTitle")} description={t("occurrences.editDescription")}>
-          {editingOccurrenceQuery.isLoading ? (
+      {selectedOccurrenceId ? (
+        <SectionCard
+          title={t("occurrences.detailTitle")}
+          description={t("occurrences.detailDescription")}
+        >
+          {detailQuery.isLoading ? (
             <LoadingState label={t("occurrences.loadingDetail")} />
-          ) : editingOccurrenceQuery.isError ? (
+          ) : detailQuery.isError ? (
             <ErrorState
               title={t("occurrences.loadDetailErrorTitle")}
-              description={getErrorMessage(editingOccurrenceQuery.error)}
+              description={getErrorMessage(detailQuery.error)}
               action={
-                <Button variant="outline" onClick={() => setEditingOccurrenceId(null)}>
-                  {t("actions.close")}
+                <Button variant="outline" onClick={() => detailQuery.refetch()}>
+                  {t("actions.tryAgain")}
                 </Button>
               }
             />
-          ) : (
-            <OccurrenceForm
-              mode="edit"
-              isSubmitting={updateMutation.isPending}
-              initialValues={{
-                description: editingOccurrenceQuery.data?.description ?? "",
-                amount: editingOccurrenceQuery.data?.amount ?? 0,
-                dueDate: editingOccurrenceQuery.data?.dueDate ?? "",
-                accountId: editingOccurrenceQuery.data?.accountId ?? "",
-                categoryId: editingOccurrenceQuery.data?.categoryId ?? "",
-                status: editingOccurrenceQuery.data?.status ?? "pending",
-              }}
-              onCancel={() => setEditingOccurrenceId(null)}
-              onSubmit={handleEdit}
-            />
-          )}
+          ) : detailQuery.data ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">{t("occurrences.table.description")}</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {detailQuery.data.description}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">{t("occurrences.table.amount")}</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {currencyFormatter.format(detailQuery.data.amount ?? 0)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">{t("occurrences.table.dueDate")}</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {formatDate(detailQuery.data.dueDate)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">{t("occurrences.table.account")}</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {detailQuery.data.accountId
+                    ? accountsById.get(detailQuery.data.accountId) ?? t("common.unknown")
+                    : t("common.notAvailable")}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">{t("occurrences.table.category")}</p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {detailQuery.data.categoryId
+                    ? categoriesById.get(detailQuery.data.categoryId) ?? t("common.unknown")
+                    : t("common.notAvailable")}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border p-3">
+                <p className="text-xs text-muted-foreground">{t("occurrences.table.status")}</p>
+                <div className="mt-1">
+                  <StatusBadge
+                    label={
+                      detailQuery.data.status
+                        ? t(`occurrences.statusFilter.${detailQuery.data.status}`)
+                        : t("common.unknown")
+                    }
+                    tone={getStatusTone(detailQuery.data.status)}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
+          <div className="mt-4">
+            <Button variant="outline" onClick={() => setSelectedOccurrenceId(null)}>
+              {t("actions.close")}
+            </Button>
+          </div>
         </SectionCard>
       ) : null}
 
-      <SectionCard title={t("occurrences.listTitle")} description={t("occurrences.listDescription")}>
+      <SectionCard
+        title={t("occurrences.listTitle")}
+        description={t("occurrences.listDescription")}
+      >
         {isBaseLoading ? (
           <LoadingState label={t("occurrences.loadingList")} />
         ) : baseError ? (
@@ -302,28 +402,22 @@ export default function OccurrencesPage() {
             title={t("occurrences.loadErrorTitle")}
             description={getErrorMessage(baseError)}
             action={
-              <Button variant="outline" onClick={() => {
-                occurrencesQuery.refetch();
-                categoriesQuery.refetch();
-                accountsQuery.refetch();
-              }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  occurrencesQuery.refetch();
+                  categoriesQuery.refetch();
+                  accountsQuery.refetch();
+                }}
+              >
                 {t("actions.tryAgain")}
               </Button>
             }
           />
-        ) : filteredOccurrences.length === 0 ? (
+        ) : occurrences.length === 0 ? (
           <EmptyState
-            title={occurrences.length === 0 ? t("occurrences.noOccurrences") : t("states.noResults")}
-            description={
-              occurrences.length === 0
-                ? t("occurrences.noOccurrencesDescription")
-                : t("occurrences.noResultsDescription")
-            }
-            action={
-              occurrences.length === 0 ? (
-                <Button onClick={() => setIsCreateOpen(true)}>{t("actions.createOccurrence")}</Button>
-              ) : undefined
-            }
+            title={t("occurrences.noOccurrences")}
+            description={t("occurrences.noOccurrencesDescription")}
           />
         ) : (
           <DataTable>
@@ -339,21 +433,29 @@ export default function OccurrencesPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredOccurrences.map((item) => (
+              {occurrences.map((item) => (
                 <tr key={item.id} className="border-t border-border/70">
                   <td className="px-4 py-3 font-medium text-foreground">{item.description}</td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {item.accountId ? accountsById.get(item.accountId) ?? t("common.unknown") : t("common.notAvailable")}
+                    {item.accountId
+                      ? accountsById.get(item.accountId) ?? t("common.unknown")
+                      : t("common.notAvailable")}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {item.categoryId ? categoriesById.get(item.categoryId) ?? t("common.unknown") : t("common.notAvailable")}
+                    {item.categoryId
+                      ? categoriesById.get(item.categoryId) ?? t("common.unknown")
+                      : t("common.notAvailable")}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(item.dueDate)}</td>
-                  <td className="px-4 py-3 text-foreground">{currencyFormatter.format(item.amount ?? 0)}</td>
+                  <td className="px-4 py-3 text-foreground">
+                    {currencyFormatter.format(item.amount ?? 0)}
+                  </td>
                   <td className="px-4 py-3">
                     <StatusBadge
                       label={
-                        item.status ? t(`occurrences.statusFilter.${item.status}`) : t("common.unknown")
+                        item.status
+                          ? t(`occurrences.statusFilter.${item.status}`)
+                          : t("common.unknown")
                       }
                       tone={getStatusTone(item.status)}
                     />
@@ -363,23 +465,39 @@ export default function OccurrencesPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => {
-                          setEditingOccurrenceId(item.id);
-                          setIsCreateOpen(false);
-                          setFeedback(null);
-                        }}
+                        onClick={() => setSelectedOccurrenceId(item.id)}
                       >
-                        <Pencil className="size-3.5" />
-                        {t("actions.edit")}
+                        <Eye className="size-3.5" />
+                        {t("actions.view")}
                       </Button>
+                      {item.status !== "paid" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleMarkPaid(item)}
+                          disabled={markPaidMutation.isPending}
+                        >
+                          <CheckCircle2 className="size-3.5" />
+                          {t("occurrences.actions.markPaid")}
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleUnmarkPaid(item)}
+                          disabled={unmarkPaidMutation.isPending}
+                        >
+                          <RefreshCw className="size-3.5" />
+                          {t("occurrences.actions.unmarkPaid")}
+                        </Button>
+                      )}
                       <Button
                         size="sm"
-                        variant="destructive"
-                        onClick={() => handleDelete(item)}
-                        disabled={deleteMutation.isPending}
+                        variant="outline"
+                        onClick={() => handleOverrideAmount(item)}
+                        disabled={overrideAmountMutation.isPending}
                       >
-                        <Trash2 className="size-3.5" />
-                        {t("actions.delete")}
+                        {t("occurrences.actions.overrideAmount")}
                       </Button>
                     </div>
                   </td>

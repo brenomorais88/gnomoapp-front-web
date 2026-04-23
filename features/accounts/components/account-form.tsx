@@ -2,12 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { useCategoriesListQuery } from "@/features/categories/hooks";
 import { accountFormSchema, AccountFormValues, recurrenceTypeOptions } from "@/features/accounts/schema";
 import { LoadingState } from "@/components/shared/feedback/loading-state";
 import { ErrorState } from "@/components/shared/feedback/error-state";
+import { useMyFamilyMembersQuery } from "@/features/families/hooks";
 import { getErrorMessage } from "@/lib/api/error";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
@@ -31,45 +32,60 @@ export function AccountForm({
   onSubmit,
 }: AccountFormProps) {
   const categoriesQuery = useCategoriesListQuery({ active: true });
+  const familyMembersQuery = useMyFamilyMembersQuery();
 
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema),
     defaultValues: {
       title: initialValues?.title ?? "",
-      baseAmount: initialValues?.baseAmount ?? 0,
+      baseAmount: initialValues?.baseAmount ?? "0.00",
       startDate: initialValues?.startDate ?? "",
       endDate: initialValues?.endDate ?? "",
       recurrenceType: initialValues?.recurrenceType ?? "MONTHLY",
       categoryId: initialValues?.categoryId ?? "",
+      ownershipType: initialValues?.ownershipType ?? "PERSONAL",
+      responsibleMemberId: initialValues?.responsibleMemberId ?? "",
       notes: initialValues?.notes ?? "",
       active: initialValues?.active ?? true,
     },
+  });
+  const ownershipType = useWatch({
+    control: form.control,
+    name: "ownershipType",
   });
 
   useEffect(() => {
     form.reset({
       title: initialValues?.title ?? "",
-      baseAmount: initialValues?.baseAmount ?? 0,
+      baseAmount: initialValues?.baseAmount ?? "0.00",
       startDate: initialValues?.startDate ?? "",
       endDate: initialValues?.endDate ?? "",
       recurrenceType: initialValues?.recurrenceType ?? "MONTHLY",
       categoryId: initialValues?.categoryId ?? "",
+      ownershipType: initialValues?.ownershipType ?? "PERSONAL",
+      responsibleMemberId: initialValues?.responsibleMemberId ?? "",
       notes: initialValues?.notes ?? "",
       active: initialValues?.active ?? true,
     });
   }, [form, initialValues]);
 
-  if (categoriesQuery.isLoading) {
+  if (categoriesQuery.isLoading || familyMembersQuery.isLoading) {
     return <LoadingState label={t("accounts.form.loadingOptions")} className="min-h-24" />;
   }
 
-  if (categoriesQuery.isError) {
+  if (categoriesQuery.isError || familyMembersQuery.isError) {
     return (
       <ErrorState
-        title={t("accounts.loadCategoriesErrorTitle")}
-        description={getErrorMessage(categoriesQuery.error)}
+        title={t("accounts.form.loadDependenciesErrorTitle")}
+        description={getErrorMessage(categoriesQuery.error) || getErrorMessage(familyMembersQuery.error)}
         action={
-          <Button variant="outline" onClick={() => categoriesQuery.refetch()}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              categoriesQuery.refetch();
+              familyMembersQuery.refetch();
+            }}
+          >
             {t("actions.tryAgain")}
           </Button>
         }
@@ -78,6 +94,9 @@ export function AccountForm({
   }
 
   const categoryOptions = categoriesQuery.data ?? [];
+  const memberOptions = (familyMembersQuery.data ?? []).filter(
+    (member) => member.status === "ACTIVE" || member.status === "PENDING_REGISTRATION",
+  );
 
   return (
     <form
@@ -103,10 +122,9 @@ export function AccountForm({
           </label>
           <input
             id="account-baseAmount"
-            type="number"
-            step="0.01"
             className={inputClassName}
-            {...form.register("baseAmount", { valueAsNumber: true })}
+            placeholder="0.00"
+            {...form.register("baseAmount")}
           />
           {form.formState.errors.baseAmount ? (
             <p className="text-xs text-destructive">
@@ -163,6 +181,45 @@ export function AccountForm({
             <p className="text-xs text-destructive">{form.formState.errors.endDate.message}</p>
           ) : null}
         </div>
+
+        <div className="grid gap-2 sm:col-span-2">
+          <label htmlFor="account-ownershipType" className="text-sm font-medium text-foreground">
+            {t("accounts.form.ownershipType")}
+          </label>
+          <select
+            id="account-ownershipType"
+            className={cn(inputClassName, "h-10")}
+            {...form.register("ownershipType")}
+          >
+            <option value="PERSONAL">{t("accounts.ownershipType.PERSONAL")}</option>
+            <option value="FAMILY">{t("accounts.ownershipType.FAMILY")}</option>
+          </select>
+        </div>
+
+        {ownershipType === "FAMILY" ? (
+          <div className="grid gap-2 sm:col-span-2">
+            <label htmlFor="account-responsibleMemberId" className="text-sm font-medium text-foreground">
+              {t("accounts.form.responsibleMember")}
+            </label>
+            <select
+              id="account-responsibleMemberId"
+              className={cn(inputClassName, "h-10")}
+              {...form.register("responsibleMemberId")}
+            >
+              <option value="">{t("accounts.form.selectResponsibleMember")}</option>
+              {memberOptions.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
+            {form.formState.errors.responsibleMemberId ? (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.responsibleMemberId.message}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="grid gap-2 sm:col-span-2">
           <label htmlFor="account-categoryId" className="text-sm font-medium text-foreground">

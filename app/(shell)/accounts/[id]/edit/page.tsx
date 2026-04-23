@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/shared/feedback/error-state";
+import { InlineFeedback } from "@/components/shared/feedback/inline-feedback";
 import { LoadingState } from "@/components/shared/feedback/loading-state";
 import { SectionCard } from "@/components/shared/data/section-card";
 import { AppPageContainer } from "@/components/shared/layout/app-page-container";
@@ -12,6 +13,7 @@ import { PageHeader } from "@/components/shared/layout/page-header";
 import { AccountForm } from "@/features/accounts/components/account-form";
 import { useAccountDetailQuery, useUpdateAccountMutation } from "@/features/accounts/hooks";
 import { AccountFormValues } from "@/features/accounts/schema";
+import { useAuthorization } from "@/hooks/auth/use-authorization";
 import { getErrorMessage } from "@/lib/api/error";
 import { t } from "@/lib/i18n";
 
@@ -23,6 +25,9 @@ function toPayload(values: AccountFormValues) {
     endDate: values.endDate || null,
     recurrenceType: values.recurrenceType,
     categoryId: values.categoryId,
+    ownershipType: values.ownershipType,
+    responsibleMemberId:
+      values.ownershipType === "FAMILY" ? values.responsibleMemberId || undefined : undefined,
     notes: values.notes?.trim() || undefined,
     active: values.active,
   };
@@ -34,11 +39,17 @@ export default function EditAccountPage() {
   const accountId = params.id;
 
   const detailQuery = useAccountDetailQuery(accountId);
+  const authorization = useAuthorization();
   const updateMutation = useUpdateAccountMutation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const accountData = detailQuery.data;
 
   async function handleUpdate(values: AccountFormValues) {
+    if (values.ownershipType === "FAMILY" && !authorization.canEditFamilyAccount) {
+      setErrorMessage(t("accounts.familyWriteBlocked"));
+      return;
+    }
+
     try {
       await updateMutation.mutateAsync({
         id: accountId,
@@ -86,9 +97,7 @@ export default function EditAccountPage() {
         ) : (
           <>
             {errorMessage ? (
-              <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {errorMessage}
-              </div>
+              <InlineFeedback tone="danger" message={errorMessage} className="mb-4" />
             ) : null}
             <AccountForm
               mode="edit"
@@ -100,6 +109,8 @@ export default function EditAccountPage() {
                 endDate: accountData.endDate || "",
                 recurrenceType: accountData.recurrenceType,
                 categoryId: accountData.categoryId,
+                ownershipType: accountData.ownershipType,
+                responsibleMemberId: accountData.responsibleMemberId || "",
                 notes: accountData.notes || "",
                 active: accountData.active ?? true,
               }}

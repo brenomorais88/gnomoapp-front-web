@@ -12,6 +12,7 @@ type CategoryFormProps = {
   mode: "create" | "edit";
   initialValues?: Partial<CategoryFormValues>;
   isSubmitting?: boolean;
+  isReadOnly?: boolean;
   onCancel: () => void;
   onSubmit: (values: CategoryFormValues) => Promise<void>;
 };
@@ -23,6 +24,7 @@ export function CategoryForm({
   mode,
   initialValues,
   isSubmitting,
+  isReadOnly,
   onCancel,
   onSubmit,
 }: CategoryFormProps) {
@@ -60,7 +62,12 @@ export function CategoryForm({
         <label className="text-sm font-medium text-foreground" htmlFor="category-name">
           {t("categories.form.name")}
         </label>
-        <input id="category-name" className={inputClassName} {...form.register("name")} />
+        <input
+          id="category-name"
+          className={inputClassName}
+          disabled={isReadOnly}
+          {...form.register("name")}
+        />
         {form.formState.errors.name ? (
           <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
         ) : null}
@@ -76,6 +83,7 @@ export function CategoryForm({
         <textarea
           id="category-description"
           className={cn(inputClassName, "min-h-20 resize-y")}
+          disabled={isReadOnly}
           {...form.register("description")}
         />
         {form.formState.errors.description ? (
@@ -95,11 +103,12 @@ export function CategoryForm({
             type="color"
             className="h-9 w-12 rounded-md border border-input bg-background p-1"
             value={selectedColor || "#2563EB"}
+            disabled={isReadOnly}
             onChange={(event) => {
               form.setValue("color", event.target.value, { shouldValidate: true });
             }}
           />
-          <input className={inputClassName} {...form.register("color")} />
+          <input className={inputClassName} disabled={isReadOnly} {...form.register("color")} />
         </div>
         {form.formState.errors.color ? (
           <p className="text-xs text-destructive">{form.formState.errors.color.message}</p>
@@ -107,12 +116,17 @@ export function CategoryForm({
       </div>
 
       <label className="flex items-center gap-2 text-sm text-foreground">
-        <input type="checkbox" className="size-4 rounded border-input" {...form.register("active")} />
+        <input
+          type="checkbox"
+          className="size-4 rounded border-input"
+          disabled={isReadOnly}
+          {...form.register("active")}
+        />
         {t("categories.form.active")}
       </label>
 
       <div className="flex flex-wrap items-center gap-2 pt-1">
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || isReadOnly}>
           {mode === "create"
             ? t("actions.createCategory")
             : t("actions.saveChanges")}

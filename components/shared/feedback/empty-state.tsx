@@ -15,6 +15,8 @@ export function EmptyState({ title, description, action, className }: EmptyState
         "rounded-xl border border-dashed border-border bg-muted/40 p-6 text-center sm:p-8",
         className,
       )}
+      role="status"
+      aria-live="polite"
     >
       <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">

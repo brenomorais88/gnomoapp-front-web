@@ -7,7 +7,10 @@ import { useMemo, useState, type ReactNode } from "react";
 import { appNavigationItems, getRouteLabelKey } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/shared/data/status-badge";
 import { t } from "@/lib/i18n";
+import { useAuth } from "@/providers/auth-provider";
+import { useViewScope } from "@/hooks/view/use-view-scope";
 
 type AppShellProps = {
   children: ReactNode;
@@ -49,6 +52,8 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
 export function AppShell({ children }: AppShellProps) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const pathname = usePathname();
+  const { session, logout } = useAuth();
+  const { label: scopeLabel } = useViewScope();
 
   const routeTitle = useMemo(() => getRouteLabelKey(pathname), [pathname]);
 
@@ -84,10 +89,19 @@ export function AppShell({ children }: AppShellProps) {
                   <p className="text-sm font-semibold text-foreground">
                     {t(routeTitle)}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t("common.workflowSubtitle")}
-                  </p>
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground">{t("common.workflowSubtitle")}</p>
+                    <StatusBadge label={scopeLabel} tone="info" />
+                  </div>
                 </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <p className="hidden text-sm text-muted-foreground sm:block">
+                  {session?.user.name || session?.user.email}
+                </p>
+                <Button size="sm" variant="outline" onClick={logout}>
+                  {t("auth.actions.logout")}
+                </Button>
               </div>
             </div>
           </header>

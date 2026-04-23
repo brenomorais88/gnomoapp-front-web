@@ -21,13 +21,16 @@ export const accountFormSchema = z
       .min(1, t("validation.requiredTitle"))
       .max(120, t("validation.titleTooLong")),
     baseAmount: z
-      .number()
-      .refine((value) => Number.isFinite(value), t("validation.requiredAmount"))
-      .min(0, t("validation.negativeAmount")),
+      .string()
+      .trim()
+      .min(1, t("validation.requiredAmount"))
+      .refine((value) => /^\d+(\.\d{1,2})?$/.test(value), t("accounts.form.invalidAmountFormat")),
     startDate: z.string().min(1, t("validation.requiredStartDate")),
     endDate: z.string().optional().or(z.literal("")),
     recurrenceType: z.enum(["ONCE", "DAILY", "WEEKLY", "MONTHLY", "YEARLY"]),
     categoryId: z.string().trim().min(1, t("validation.requiredCategory")),
+    ownershipType: z.enum(["PERSONAL", "FAMILY"]),
+    responsibleMemberId: z.string().optional().or(z.literal("")),
     notes: z
       .string()
       .trim()
@@ -36,6 +39,19 @@ export const accountFormSchema = z
       .or(z.literal("")),
     active: z.boolean(),
   })
+  .refine(
+    (values) => {
+      if (values.ownershipType !== "FAMILY") {
+        return true;
+      }
+
+      return Boolean(values.responsibleMemberId && values.responsibleMemberId.trim());
+    },
+    {
+      path: ["responsibleMemberId"],
+      message: t("accounts.form.requiredResponsibleMember"),
+    },
+  )
   .refine(
     (values) => {
       if (!values.endDate) {

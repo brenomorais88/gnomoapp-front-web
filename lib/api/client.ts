@@ -1,5 +1,6 @@
 import { getApiBaseUrl } from "@/lib/config/env";
 import { ApiError } from "@/lib/api/error";
+import { emitApiClientEvent } from "@/lib/api/events";
 
 type ApiMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -10,6 +11,10 @@ type ApiRequestOptions = {
   query?: Record<string, string | number | boolean | undefined | null>;
   signal?: AbortSignal;
 };
+
+type AccessTokenResolver = () => string | null | undefined;
+
+let accessTokenResolver: AccessTokenResolver | null = null;
 
 function buildUrl(path: string, query?: ApiRequestOptions["query"]) {
   const sanitizedPath = path.startsWith("/") ? path : `/${path}`;
@@ -39,19 +44,52 @@ async function parseResponseBody(response: Response) {
   return response.json();
 }
 
+export function setApiAccessTokenResolver(resolver: AccessTokenResolver | null) {
+  accessTokenResolver = resolver;
+}
+
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}) {
   const { method = "GET", body, query, headers, signal } = options;
+  const accessToken = accessTokenResolver?.();
+  const requestHeaders = new Headers(headers);
+  requestHeaders.set("Accept", "application/json");
 
-  const response = await fetch(buildUrl(path, query), {
-    method,
-    headers: {
-      Accept: "application/json",
-      ...(body ? { "Content-Type": "application/json" } : {}),
-      ...headers,
-    },
-    body: body ? JSON.stringify(body) : undefined,
-    signal,
-  });
+  if (body) {
+    requestHeaders.set("Content-Type", "application/json");
+  }
+
+  if (accessToken) {
+    requestHeaders.set("Authorization", `Bearer ${accessToken}`);
+  }
+
+  if (process.env.NODE_ENV !== "production" && path.startsWith("/families/me")) {
+    console.info("[api] request debug", {
+      path,
+      method,
+      hasAccessToken: Boolean(accessToken),
+      hasAuthorizationHeader: requestHeaders.has("Authorization"),
+    });
+  }
+
+  let response: Response;
+
+  try {
+    response = await fetch(buildUrl(path, query), {
+      method,
+      headers: requestHeaders,
+      body: body ? JSON.stringify(body) : undefined,
+      signal,
+    });
+  } catch (error) {
+    const apiError = new ApiError("Unable to connect to the server", {
+      status: 0,
+      code: "NETWORK_ERROR",
+      details: error,
+    });
+
+    emitApiClientEvent({ type: "request-error", error: apiError });
+    throw apiError;
+  }
 
   const responseBody = await parseResponseBody(response);
 
@@ -61,7 +99,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
         ? (responseBody as Record<string, unknown>)
         : null;
 
-    throw new ApiError(
+    const apiError = new ApiError(
       String(errorPayload?.message ?? `Request failed with status ${response.status}`),
       {
         status: response.status,
@@ -69,6 +107,13 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
         details: responseBody,
       },
     );
+
+    emitApiClientEvent({
+      type: response.status === 401 ? "unauthorized" : "request-error",
+      error: apiError,
+    });
+
+    throw apiError;
   }
 
   return responseBody as T;

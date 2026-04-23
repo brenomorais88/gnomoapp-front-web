@@ -12,6 +12,8 @@ import { AppPageContainer } from "@/components/shared/layout/app-page-container"
 import { PageHeader } from "@/components/shared/layout/page-header";
 import { useAccountDetailQuery } from "@/features/accounts/hooks";
 import { useCategoriesListQuery } from "@/features/categories/hooks";
+import { useMyFamilyMembersQuery } from "@/features/families/hooks";
+import { useAuthorization } from "@/hooks/auth/use-authorization";
 import { getErrorMessage } from "@/lib/api/error";
 import { t } from "@/lib/i18n";
 
@@ -38,11 +40,16 @@ export default function AccountDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const accountId = params.id;
+  const authorization = useAuthorization();
 
   const detailQuery = useAccountDetailQuery(accountId);
   const categoriesQuery = useCategoriesListQuery();
+  const familyMembersQuery = useMyFamilyMembersQuery();
 
   const categoryName = categoriesQuery.data?.find((category) => category.id === detailQuery.data?.categoryId)?.name;
+  const responsibleMemberName = familyMembersQuery.data?.find(
+    (member) => member.id === detailQuery.data?.responsibleMemberId,
+  )?.name;
 
   return (
     <AppPageContainer className="ds-section-gap">
@@ -59,7 +66,12 @@ export default function AccountDetailPage() {
             </Link>
             <Link
               href={`/accounts/${accountId}/edit`}
-              className="ds-focus-ring inline-flex items-center rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              className={`ds-focus-ring inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium ${
+                detailQuery.data?.ownershipType === "FAMILY" &&
+                !authorization.canEditFamilyAccount
+                  ? "pointer-events-none cursor-not-allowed bg-muted text-muted-foreground"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+              }`}
             >
               {t("accounts.editAccount")}
             </Link>
@@ -68,12 +80,12 @@ export default function AccountDetailPage() {
       />
 
       <SectionCard title={t("accounts.detailOverviewTitle")} description={t("accounts.detailOverviewDescription")}>
-        {detailQuery.isLoading ? (
+        {detailQuery.isLoading || familyMembersQuery.isLoading ? (
           <LoadingState label={t("accounts.loadingDetail")} />
-        ) : detailQuery.isError ? (
+        ) : detailQuery.isError || familyMembersQuery.isError ? (
           <ErrorState
             title={t("accounts.loadDetailErrorTitle")}
-            description={getErrorMessage(detailQuery.error)}
+            description={getErrorMessage(detailQuery.error) || getErrorMessage(familyMembersQuery.error)}
             action={
               <Button variant="outline" onClick={() => detailQuery.refetch()}>
                 {t("actions.tryAgain")}
@@ -105,9 +117,15 @@ export default function AccountDetailPage() {
               <p className="mt-1 text-sm font-medium text-foreground">{t(`accounts.recurrence.${detailQuery.data.recurrenceType}`)}</p>
             </div>
             <div className="rounded-lg border border-border p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("accounts.table.scope")}</p>
+              <p className="mt-1 text-sm font-medium text-foreground">
+                {t(`accounts.ownershipType.${detailQuery.data.ownershipType}`)}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border p-4">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("accounts.table.baseAmount")}</p>
               <p className="mt-1 text-sm font-medium text-foreground">
-                {currencyFormatter.format(detailQuery.data.baseAmount ?? 0)}
+                {currencyFormatter.format(Number(detailQuery.data.baseAmount ?? 0))}
               </p>
             </div>
             <div className="rounded-lg border border-border p-4">
@@ -118,6 +136,16 @@ export default function AccountDetailPage() {
               <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("accounts.table.endDate")}</p>
               <p className="mt-1 text-sm font-medium text-foreground">{formatDate(detailQuery.data.endDate)}</p>
             </div>
+            {detailQuery.data.ownershipType === "FAMILY" ? (
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  {t("accounts.table.responsibleMember")}
+                </p>
+                <p className="mt-1 text-sm font-medium text-foreground">
+                  {responsibleMemberName ?? t("common.notAvailable")}
+                </p>
+              </div>
+            ) : null}
             <div className="rounded-lg border border-border p-4 sm:col-span-2 lg:col-span-3">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("accounts.form.notes")}</p>
               <p className="mt-1 text-sm text-foreground">{detailQuery.data.notes || t("common.notAvailable")}</p>

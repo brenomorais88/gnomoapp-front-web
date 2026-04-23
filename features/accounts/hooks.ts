@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  activateAccount,
   createAccount,
+  deactivateAccount,
   deleteAccount,
   getAccountById,
   listAccounts,
@@ -34,7 +36,7 @@ export function useAccountDetailQuery(id: string) {
 export function useCreateAccountMutation() {
   return useApiMutation({
     mutationFn: (payload: CreateAccountInput) => createAccount(payload),
-    invalidateQueryKeys: [queryKeys.accounts.root],
+    invalidateQueryKeys: [queryKeys.accounts.root, queryKeys.dashboard.root],
   });
 }
 
@@ -42,13 +44,27 @@ export function useUpdateAccountMutation() {
   return useApiMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateAccountInput }) =>
       updateAccount({ id, payload }),
-    invalidateQueryKeys: [queryKeys.accounts.root],
+    invalidateQueryKeys: [queryKeys.accounts.root, queryKeys.dashboard.root],
   });
 }
 
 export function useDeleteAccountMutation() {
   return useApiMutation({
     mutationFn: (id: string) => deleteAccount(id),
-    invalidateQueryKeys: [queryKeys.accounts.root],
+    invalidateQueryKeys: [queryKeys.accounts.root, queryKeys.dashboard.root],
+  });
+}
+
+export function useActivateAccountMutation() {
+  return useApiMutation({
+    mutationFn: (id: string) => activateAccount(id),
+    invalidateQueryKeys: [queryKeys.accounts.root, queryKeys.dashboard.root],
+  });
+}
+
+export function useDeactivateAccountMutation() {
+  return useApiMutation({
+    mutationFn: (id: string) => deactivateAccount(id),
+    invalidateQueryKeys: [queryKeys.accounts.root, queryKeys.dashboard.root],
   });
 }

@@ -3,6 +3,7 @@ import {
   FolderKanban,
   LayoutDashboard,
   ListTodo,
+  Users,
   WalletCards,
 } from "lucide-react";
 
@@ -16,6 +17,11 @@ export const appNavigationItems = [
     labelKey: "navigation.categories",
     href: "/categories",
     icon: FolderKanban,
+  },
+  {
+    labelKey: "navigation.family",
+    href: "/family",
+    icon: Users,
   },
   {
     labelKey: "navigation.accounts",
