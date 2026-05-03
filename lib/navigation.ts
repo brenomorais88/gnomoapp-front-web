@@ -41,6 +41,10 @@ export const appNavigationItems = [
 ] as const;
 
 export function getRouteLabelKey(pathname: string) {
+  if (pathname === "/profile" || pathname.startsWith("/profile/")) {
+    return "navigation.profile";
+  }
+
   const item = appNavigationItems.find((navItem) =>
     navItem.href === "/"
       ? pathname === "/"

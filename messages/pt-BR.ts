@@ -16,6 +16,17 @@ export const ptBRMessages = {
     menu: "Menu",
     openMenu: "Abrir menu de navegação",
     closeMenu: "Fechar menu de navegação",
+    currentFamily: "Família atual",
+    noFamilySelected: "Sem família selecionada",
+    userMenu: "Menu do usuário",
+    myProfile: "Meu perfil",
+    profile: "Perfil",
+    footer: {
+      contact: "Contato",
+      terms: "Termos de uso",
+      privacy: "Privacidade",
+      cnpj: "CNPJ: 00.000.000/0001-00",
+    },
   },
   actions: {
     calendar: "Calendário",
@@ -415,12 +426,21 @@ export const ptBRMessages = {
       },
     },
   },
+  profile: {
+    description: "Dados básicos da conta autenticada.",
+    accountTitle: "Minha conta",
+    accountDescription: "Informações de identificação do usuário logado.",
+    name: "Nome",
+    email: "E-mail",
+  },
   family: {
     title: "Gestão da família",
     description:
       "Visualize os membros atuais da família, com papel e status de participação.",
     loadErrorTitle: "Não foi possível carregar dados da família",
     membersTitle: "Membros da família",
+    cardsDescription:
+      "Toque em um membro para abrir os detalhes. Use poucos cliques para criar e gerenciar.",
     membersDescription:
       "Base para futuras ações de convite, troca de papel e gestão de permissões.",
     noMembers: "Nenhum membro encontrado",
@@ -438,12 +458,28 @@ export const ptBRMessages = {
     table: {
       name: "Nome",
       email: "E-mail",
+      phone: "Celular",
       role: "Papel",
       status: "Status",
       actions: "Ações",
     },
+    modal: {
+      createTitle: "Adicionar novo membro",
+      createDescription: "Convide um novo membro para participar da família.",
+      editTitle: "Gerenciar {name}",
+      editDescription: "Edite papel e permissões do membro selecionado.",
+      readTitle: "Detalhes do membro",
+      readDescription: "Visualização em modo leitura.",
+      fields: {
+        firstName: "Nome",
+        lastName: "Sobrenome",
+      },
+      actions: {
+        saveRole: "Salvar papel",
+      },
+    },
     memberForm: {
-      openAction: "Adicionar membro",
+      openAction: "Novo membro",
       title: "Adicionar membro pendente",
       description: "Convide um novo membro para a família atual.",
       pendingHint:
@@ -469,11 +505,15 @@ export const ptBRMessages = {
     },
     memberActions: {
       manage: "Gerenciar",
+      view: "Visualizar",
       promote: "Promover para ADMIN",
       demote: "Rebaixar para MEMBER",
       remove: "Remover",
       panelDescription:
         "Revise papel, status e permissões do membro selecionado antes de aplicar alterações.",
+      readOnlyHint: "Este membro está aberto em modo leitura.",
+      adminOnlyHint:
+        "Somente administradores podem alterar papel, permissões e remoção de membros.",
       roleChangeConfirm:
         "Deseja alterar o papel de \"{name}\" para \"{role}\"? Esta mudança afeta as permissões imediatamente.",
       removeConfirm:
@@ -498,6 +538,8 @@ export const ptBRMessages = {
       submit: "Salvar permissões",
       submitting: "Salvando permissões...",
       success: "Permissões atualizadas com sucesso.",
+      dynamicFallbackDescription:
+        "Permissão detectada automaticamente a partir do backend.",
       fields: {
         canViewFamilyAccounts: {
           label: "Ver contas da família",
@@ -540,6 +582,12 @@ export const ptBRMessages = {
           description: "Permite editar dados pessoais de outros membros quando compartilhados.",
         },
       },
+    },
+    permissionsCache: {
+      loading: "Atualizando permissões da família...",
+      error:
+        "Não foi possível atualizar permissões agora. O acesso permanecerá em modo seguro até a próxima atualização.",
+      readOnly: "Você está em modo leitura para gestão de membros nesta família.",
     },
   },
 } as const;

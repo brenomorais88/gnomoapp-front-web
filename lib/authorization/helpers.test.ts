@@ -29,6 +29,24 @@ describe("authorization helpers", () => {
     expect(role).toBe("MEMBER");
   });
 
+  it("resolves current user role by email fallback", () => {
+    const role = getCurrentUserFamilyRole(
+      [
+        {
+          id: "family-member-1",
+          name: "Breno",
+          email: "breno@daily.local",
+          role: "ADMIN",
+          status: "ACTIVE",
+        },
+      ],
+      "user-id-different",
+      "breno@daily.local",
+    );
+
+    expect(role).toBe("ADMIN");
+  });
+
   it("allows action when matching permission exists", () => {
     const result = canExecuteAction("manageCategories", ["canManageCategories"]);
     expect(result).toBe(true);

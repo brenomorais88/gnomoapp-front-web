@@ -27,6 +27,7 @@ export type RemoveFamilyMemberInput = {
 };
 
 export type MemberPermissionsDto = {
+  [key: string]: boolean;
   canViewFamilyAccounts: boolean;
   canCreateFamilyAccounts: boolean;
   canEditFamilyAccounts: boolean;
