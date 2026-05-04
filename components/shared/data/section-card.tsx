@@ -7,6 +7,8 @@ type SectionCardProps = {
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  /** Tighter padding and header for dense layouts */
+  dense?: boolean;
 };
 
 export function SectionCard({
@@ -15,20 +17,43 @@ export function SectionCard({
   action,
   children,
   className,
+  dense = false,
 }: SectionCardProps) {
   return (
     <section
       className={cn(
-        "rounded-xl border border-border/80 bg-card p-4 shadow-sm sm:p-6",
+        "rounded-lg border border-gray-100 bg-card shadow-sm",
+        dense ? "p-3 sm:p-4" : "p-4 sm:p-6",
         className,
       )}
     >
       {title || description || action ? (
-        <div className="mb-4 flex flex-col gap-3 border-b border-border/60 pb-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
-            {title ? <h2 className="text-base font-semibold text-card-foreground sm:text-lg">{title}</h2> : null}
+        <div
+          className={cn(
+            "flex flex-col border-b border-border/50 sm:flex-row sm:items-start sm:justify-between",
+            dense ? "mb-3 gap-2 pb-3" : "mb-4 gap-3 pb-4",
+          )}
+        >
+          <div className={cn(dense ? "space-y-0.5" : "space-y-1")}>
+            {title ? (
+              <h2
+                className={cn(
+                  "font-semibold text-card-foreground",
+                  dense ? "text-sm sm:text-base" : "text-base sm:text-lg",
+                )}
+              >
+                {title}
+              </h2>
+            ) : null}
             {description ? (
-              <p className="text-sm text-muted-foreground">{description}</p>
+              <p
+                className={cn(
+                  "text-muted-foreground",
+                  dense ? "text-xs sm:text-sm" : "text-sm",
+                )}
+              >
+                {description}
+              </p>
             ) : null}
           </div>
           {action ? <div className="shrink-0">{action}</div> : null}

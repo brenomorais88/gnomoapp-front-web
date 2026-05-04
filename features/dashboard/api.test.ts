@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  getFinancialDashboardData,
   getDashboardCategorySummary,
   getDashboardDay,
   getDashboardHome,
@@ -89,5 +90,85 @@ describe("dashboard api", () => {
 
     const result = await getDashboardCategorySummary("2026-04");
     expect(result.items[0]).toMatchObject({ categoryId: "c1", count: 2 });
+  });
+
+  it("loads financial dashboard data from occurrences with frontend fallback filters", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            data: [
+              {
+                id: "o1",
+                description: "Conta A",
+                amountSnapshot: "120.40",
+                dueDate: "2026-05-10T00:00:00Z",
+                status: "PENDING",
+                scope: "FAMILY",
+                accountId: "acc-1",
+              },
+              {
+                id: "o2",
+                description: "Conta B",
+                amount: "99.90",
+                dueDate: "2026-05-20",
+                status: "PAID",
+                scope: "FAMILY",
+                accountId: "acc-1",
+              },
+              {
+                id: "o3",
+                description: "Conta C",
+                amount: "50",
+                dueDate: "2026-06-02",
+                status: "PENDING",
+                scope: "FAMILY",
+                accountId: "acc-1",
+              },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+
+    const result = await getFinancialDashboardData({
+      scope: "FAMILY",
+      accountId: "acc-1",
+      statuses: ["pending", "paid"],
+      month: "2026-05",
+      timezone: "America/Sao_Paulo",
+    });
+
+    expect(result.occurrences).toHaveLength(2);
+    expect(result.occurrences[0]?.amount).toBe(120.4);
+    expect(result.occurrences[0]?.dueDate).toBeInstanceOf(Date);
+    expect(result.source.backendApplied).toEqual([
+      "startDate",
+      "endDate",
+      "month",
+      "scope",
+    ]);
+    expect(result.source.frontendApplied).toContain("status(client)");
+  });
+
+  it("propagates api errors from financial dashboard data", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ message: "Internal Server Error" }), {
+          status: 500,
+          headers: { "content-type": "application/json" },
+        }),
+      ),
+    );
+
+    await expect(
+      getFinancialDashboardData({
+        scope: "VISIBLE_TO_ME",
+        month: "2026-05",
+      }),
+    ).rejects.toMatchObject({ status: 500 });
   });
 });

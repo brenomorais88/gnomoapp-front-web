@@ -2,20 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { ChevronDown, Menu } from "lucide-react";
 import {
+  Suspense,
   useEffect,
   useMemo,
   useRef,
   useState,
   type ReactNode,
 } from "react";
-import { appNavigationItems, getRouteLabelKey } from "@/lib/navigation";
+import { appNavigationMenuItems, financeNavigationItems, getRouteLabelKey } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth-provider";
 import { useFamily } from "@/providers/family-provider";
+import { FinancialDashboardSearchBar } from "@/components/shared/layout/financial-dashboard-search-bar";
 
 type AppShellProps = {
   children: ReactNode;
@@ -23,15 +25,80 @@ type AppShellProps = {
 
 function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const isFinanceActive = financeNavigationItems.some((item) =>
+    pathname === item.href || pathname.startsWith(`${item.href}/`),
+  );
+  const [isFinanceOpen, setIsFinanceOpen] = useState(isFinanceActive);
+
+  useEffect(() => {
+    if (isFinanceActive) {
+      setIsFinanceOpen(true);
+    }
+  }, [isFinanceActive]);
 
   return (
-    <nav className="space-y-1">
-      {appNavigationItems.map((item) => {
+    <nav className="space-y-0.5">
+      {appNavigationMenuItems.map((item) => {
+        const Icon = item.icon;
+        if ("children" in item) {
+          return (
+            <div key={item.labelKey}>
+              <button
+                type="button"
+                onClick={() => setIsFinanceOpen((current) => !current)}
+                className={cn(
+                  "ds-focus-ring flex w-full items-center gap-2.5 rounded-r-lg border-l-4 py-2 pl-2.5 pr-3 text-sm font-medium transition-colors",
+                  isFinanceActive
+                    ? "border-primary bg-primary/10 text-primary shadow-sm"
+                    : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+                aria-expanded={isFinanceOpen}
+              >
+                <Icon className="size-4 shrink-0" aria-hidden="true" />
+                <span className="flex-1 text-left">{t(item.labelKey)}</span>
+                <ChevronDown
+                  className={cn(
+                    "size-4 transition-transform",
+                    isFinanceOpen ? "rotate-180" : "rotate-0",
+                  )}
+                  aria-hidden="true"
+                />
+              </button>
+              {isFinanceOpen ? (
+                <div className="mt-1 space-y-1 pl-6">
+                  {item.children.map((subItem) => {
+                    const isSubItemActive =
+                      pathname === subItem.href || pathname.startsWith(`${subItem.href}/`);
+                    return (
+                      <Link
+                        key={subItem.href}
+                        href={subItem.href}
+                        onClick={onNavigate}
+                        className={cn(
+                          "ds-focus-ring flex items-center gap-3 rounded-r-lg border-l-4 py-2 pl-2.5 pr-3 text-sm font-medium transition-colors",
+                          isSubItemActive
+                            ? "border-primary bg-primary/10 text-primary shadow-sm"
+                            : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                        )}
+                      >
+                        <subItem.icon
+                          className={cn("size-4", isSubItemActive && "size-[1.15rem]")}
+                          aria-hidden="true"
+                        />
+                        <span>{t(subItem.labelKey)}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          );
+        }
+
         const isActive =
           item.href === "/"
             ? pathname === "/"
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
-        const Icon = item.icon;
 
         return (
           <Link
@@ -39,13 +106,16 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "ds-focus-ring flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+              "ds-focus-ring flex items-center gap-2.5 rounded-r-lg border-l-4 py-2 pl-2.5 pr-3 text-sm font-medium transition-colors",
               isActive
-                ? "bg-primary/12 text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "border-primary bg-primary/10 text-primary shadow-sm"
+                : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            <Icon className="size-4" aria-hidden="true" />
+            <Icon
+              className={cn("size-4 shrink-0", isActive && "size-[1.15rem]")}
+              aria-hidden="true"
+            />
             <span>{t(item.labelKey)}</span>
           </Link>
         );
@@ -120,7 +190,7 @@ export function AppShell({ children }: AppShellProps) {
     <div className="min-h-screen bg-background">
       <div className="flex min-h-screen flex-col">
         <header className="sticky top-0 z-30 w-full border-b border-border/70 bg-background/95 backdrop-blur">
-          <div className="grid h-16 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-4 sm:px-6 lg:px-8">
+          <div className="grid h-16 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4 sm:px-6 lg:px-8">
               <div className="flex h-full items-center gap-3">
                 <Button
                   variant="outline"
@@ -154,7 +224,7 @@ export function AppShell({ children }: AppShellProps) {
                     ))}
                   </select>
                 ) : (
-                  <div className="rounded-md border border-border/70 bg-muted/40 px-3 py-1.5 text-center text-sm font-medium text-foreground">
+                  <div className="rounded-xl border border-primary/15 bg-primary/5 px-4 py-2 text-center text-sm font-semibold text-foreground shadow-sm">
                     {family.family?.name ?? t("navigation.noFamilySelected")}
                   </div>
                 )}
@@ -194,11 +264,14 @@ export function AppShell({ children }: AppShellProps) {
                 ) : null}
               </div>
           </div>
+          <Suspense fallback={null}>
+            <FinancialDashboardSearchBar />
+          </Suspense>
         </header>
 
         <div className="flex min-h-0 flex-1">
-          <aside className="hidden w-72 shrink-0 border-r border-border/70 bg-surface/80 p-5 lg:flex lg:flex-col">
-            <div className="mb-6 border-b border-border/70 pb-4">
+          <aside className="hidden w-[17rem] shrink-0 border-r border-border/70 bg-surface/80 px-4 py-5 lg:flex lg:flex-col">
+            <div className="mb-5 border-b border-border/70 pb-4">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 {t("common.appName")}
               </p>

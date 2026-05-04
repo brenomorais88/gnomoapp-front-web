@@ -15,10 +15,11 @@ import { useApiMutation } from "@/hooks/api/use-api-mutation";
 import { useApiQuery } from "@/hooks/api/use-api-query";
 import { queryKeys } from "@/lib/query-keys";
 
-export function useOccurrencesListQuery(params?: OccurrenceListQuery) {
+export function useOccurrencesListQuery(params: OccurrenceListQuery) {
   return useApiQuery({
     queryKey: queryKeys.occurrences.list(params),
     queryFn: () => listOccurrences(params),
+    enabled: Boolean(params.startDate && params.endDate),
   });
 }
 

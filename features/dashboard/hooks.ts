@@ -1,11 +1,13 @@
 "use client";
 
 import {
+  getFinancialDashboardData,
   getDashboardCategorySummary,
   getDashboardDay,
   getDashboardHome,
   getDashboardNext12Months,
 } from "@/features/dashboard/api";
+import { FinancialDashboardFilters } from "@/features/dashboard/types";
 import { useApiQuery } from "@/hooks/api/use-api-query";
 import { queryKeys } from "@/lib/query-keys";
 
@@ -37,5 +39,13 @@ export function useDashboardNext12MonthsQuery(includeDetails = false) {
   return useApiQuery({
     queryKey: queryKeys.dashboard.next12Months(includeDetails),
     queryFn: () => getDashboardNext12Months(includeDetails),
+  });
+}
+
+export function useFinancialDashboardDataQuery(filters: FinancialDashboardFilters) {
+  return useApiQuery({
+    queryKey: queryKeys.dashboard.financialData(filters),
+    queryFn: () => getFinancialDashboardData(filters),
+    enabled: Boolean(filters.month && filters.scope),
   });
 }

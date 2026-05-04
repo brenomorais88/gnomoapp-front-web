@@ -16,6 +16,8 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary-hover: var(--secondary-hover);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -36,7 +38,7 @@
 }
 
 :root {
-  --background: #f8fafc;
+  --background: #ffffff;
   --foreground: #0f172a;
   --surface: #ffffff;
   --card: #ffffff;
@@ -44,25 +46,27 @@
   --popover: #ffffff;
   --popover-foreground: #0f172a;
   --primary: #2563eb;
-  --primary-foreground: #eff6ff;
-  --secondary: #ede9fe;
-  --secondary-foreground: #4c1d95;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  --primary-foreground: #ffffff;
+  --primary-hover: #1d4ed8;
+  --secondary: #7c3aed;
+  --secondary-hover: #6d28d9;
+  --secondary-foreground: #ffffff;
+  --muted: #f8fafc;
+  --muted-foreground: #6b7280;
   --accent: #7c3aed;
-  --accent-foreground: #f5f3ff;
+  --accent-foreground: #ffffff;
   --destructive: #dc2626;
   --success: #16a34a;
   --warning: #f59e0b;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
   --ring: #2563eb;
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/40;
+    @apply border-border outline-none;
   }
 
   html,
@@ -71,24 +75,43 @@
   }
 
   body {
-    @apply bg-background font-sans text-foreground antialiased;
+    @apply bg-background font-sans text-base font-normal text-foreground antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-semibold;
   }
 
   a {
-    @apply text-primary transition-colors hover:text-primary/85;
+    @apply text-primary transition-colors hover:text-primary-hover;
   }
 }
 
 @layer components {
   .ds-focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
   .ds-surface {
-    @apply rounded-xl border border-border/80 bg-surface shadow-sm;
+    @apply rounded-lg border border-gray-100 bg-surface shadow-sm;
   }
 
   .ds-section-gap {
     @apply space-y-6 sm:space-y-7;
+  }
+
+  .finance-row-flash {
+    animation: finance-row-success 1.4s ease-out;
+  }
+
+  @keyframes finance-row-success {
+    0% {
+      background-color: rgb(22 163 74 / 0.2);
+    }
+    100% {
+      background-color: transparent;
+    }
   }
 }

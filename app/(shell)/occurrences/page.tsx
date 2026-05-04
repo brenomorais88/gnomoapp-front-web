@@ -1,5 +1,6 @@
 "use client";
 
+import { format } from "date-fns";
 import { useMemo, useState } from "react";
 import { CheckCircle2, Eye, RefreshCw } from "lucide-react";
 import { DataTable } from "@/components/shared/data/data-table";
@@ -28,7 +29,7 @@ import {
   OccurrenceListQuery,
   OccurrenceStatus,
 } from "@/features/occurrences/types";
-import { AccountListScope } from "@/features/accounts/types";
+import { buildMonthRange } from "@/features/dashboard/parsers";
 import { occurrenceOverrideSchema } from "@/features/occurrences/schema";
 import { useAuthorization } from "@/hooks/auth/use-authorization";
 import { ApiError, getErrorMessage } from "@/lib/api/error";
@@ -63,7 +64,7 @@ function getStatusTone(status?: string) {
   }
 
   if (status === "pending") {
-    return "warning" as const;
+    return "info" as const;
   }
 
   return "neutral" as const;
@@ -87,6 +88,33 @@ function sortOccurrences(items: OccurrenceDto[]) {
   });
 }
 
+function resolveOccurrenceListDateWindow(
+  monthFilter: string,
+  startDateFilter: string,
+  endDateFilter: string,
+) {
+  if (startDateFilter && endDateFilter) {
+    return { startDate: startDateFilter, endDate: endDateFilter };
+  }
+
+  if (startDateFilter) {
+    return { startDate: startDateFilter, endDate: startDateFilter };
+  }
+
+  if (endDateFilter) {
+    return { startDate: endDateFilter, endDate: endDateFilter };
+  }
+
+  const monthKey = monthFilter || format(new Date(), "yyyy-MM");
+  const range = buildMonthRange(monthKey);
+  if (range.from && range.to) {
+    return { startDate: range.from, endDate: range.to };
+  }
+
+  const fallback = buildMonthRange(format(new Date(), "yyyy-MM"));
+  return { startDate: fallback.from, endDate: fallback.to };
+}
+
 export default function OccurrencesPage() {
   const authorization = useAuthorization();
   const [textFilter, setTextFilter] = useState("");
@@ -99,23 +127,30 @@ export default function OccurrencesPage() {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const { scope: scopeFilter, setScope: setScopeFilter, label: scopeLabel } = useViewScope();
 
+  const dateWindow = useMemo(
+    () => resolveOccurrenceListDateWindow(monthFilter, startDateFilter, endDateFilter),
+    [monthFilter, startDateFilter, endDateFilter],
+  );
+
   const listParams = useMemo<OccurrenceListQuery>(
     () => ({
+      startDate: dateWindow.startDate,
+      endDate: dateWindow.endDate,
       scope: scopeFilter,
-      status: statusFilter === "all" ? undefined : statusFilter,
+      status:
+        statusFilter === "all" || statusFilter === "overdue" || statusFilter === "cancelled"
+          ? undefined
+          : statusFilter,
       categoryId: categoryIdFilter || undefined,
       text: textFilter || undefined,
-      startDate: startDateFilter || undefined,
-      endDate: endDateFilter || undefined,
       month: monthFilter || undefined,
-      size: 300,
     }),
     [
       categoryIdFilter,
-      endDateFilter,
+      dateWindow.endDate,
+      dateWindow.startDate,
       monthFilter,
       scopeFilter,
-      startDateFilter,
       statusFilter,
       textFilter,
     ],
@@ -129,10 +164,26 @@ export default function OccurrencesPage() {
   const overrideAmountMutation = useOverrideOccurrenceAmountMutation();
   const detailQuery = useOccurrenceDetailQuery(selectedOccurrenceId ?? "");
 
-  const occurrences = useMemo(
+  const rawOccurrences = useMemo(
     () => sortOccurrences(occurrencesQuery.data ?? []),
     [occurrencesQuery.data],
   );
+
+  const occurrences = useMemo(() => {
+    let items = rawOccurrences;
+    const accounts = accountsQuery.data ?? [];
+
+    if (accounts.length > 0) {
+      const visibleAccountIds = new Set(accounts.map((account) => account.id));
+      items = items.filter((item) => !item.accountId || visibleAccountIds.has(item.accountId));
+    }
+
+    if (statusFilter === "overdue" || statusFilter === "cancelled") {
+      items = items.filter((item) => item.status === statusFilter);
+    }
+
+    return items;
+  }, [accountsQuery.data, rawOccurrences, statusFilter]);
 
   const categoriesById = useMemo(() => {
     const map = new Map<string, string>();
@@ -421,36 +472,39 @@ export default function OccurrencesPage() {
           />
         ) : (
           <DataTable>
-            <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
+            <thead className="bg-muted/50 text-xs font-medium uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 font-medium">{t("occurrences.table.description")}</th>
-                <th className="px-4 py-3 font-medium">{t("occurrences.table.account")}</th>
-                <th className="px-4 py-3 font-medium">{t("occurrences.table.category")}</th>
-                <th className="px-4 py-3 font-medium">{t("occurrences.table.dueDate")}</th>
-                <th className="px-4 py-3 font-medium">{t("occurrences.table.amount")}</th>
-                <th className="px-4 py-3 font-medium">{t("occurrences.table.status")}</th>
-                <th className="px-4 py-3 text-right font-medium">{t("occurrences.table.actions")}</th>
+                <th className="px-4 py-3.5 font-medium">{t("occurrences.table.description")}</th>
+                <th className="px-4 py-3.5 font-medium">{t("occurrences.table.account")}</th>
+                <th className="px-4 py-3.5 font-medium">{t("occurrences.table.category")}</th>
+                <th className="px-4 py-3.5 font-medium">{t("occurrences.table.dueDate")}</th>
+                <th className="px-4 py-3.5 font-medium">{t("occurrences.table.amount")}</th>
+                <th className="px-4 py-3.5 font-medium">{t("occurrences.table.status")}</th>
+                <th className="px-4 py-3.5 text-right font-medium">{t("occurrences.table.actions")}</th>
               </tr>
             </thead>
             <tbody>
               {occurrences.map((item) => (
-                <tr key={item.id} className="border-t border-border/70">
-                  <td className="px-4 py-3 font-medium text-foreground">{item.description}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                <tr
+                  key={item.id}
+                  className="border-t border-border/40 transition-colors hover:bg-gray-50"
+                >
+                  <td className="px-4 py-3.5 font-medium text-foreground">{item.description}</td>
+                  <td className="px-4 py-3.5 text-muted-foreground">
                     {item.accountId
                       ? accountsById.get(item.accountId) ?? t("common.unknown")
                       : t("common.notAvailable")}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-4 py-3.5 text-muted-foreground">
                     {item.categoryId
                       ? categoriesById.get(item.categoryId) ?? t("common.unknown")
                       : t("common.notAvailable")}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(item.dueDate)}</td>
-                  <td className="px-4 py-3 text-foreground">
+                  <td className="px-4 py-3.5 text-muted-foreground">{formatDate(item.dueDate)}</td>
+                  <td className="px-4 py-3.5 text-foreground">
                     {currencyFormatter.format(item.amount ?? 0)}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3.5">
                     <StatusBadge
                       label={
                         item.status
@@ -460,7 +514,7 @@ export default function OccurrencesPage() {
                       tone={getStatusTone(item.status)}
                     />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3.5">
                     <div className="flex justify-end gap-2">
                       <Button
                         size="sm"

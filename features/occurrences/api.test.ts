@@ -16,37 +16,52 @@ describe("occurrences api", () => {
     vi.unstubAllGlobals();
   });
 
-  it("lists occurrences with scope and status mapping", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            data: [
-              {
-                id: "o1",
-                description: "Conta Luz",
-                amount: "100.50",
-                dueDate: "2026-04-22",
-                status: "PENDING",
-                scope: "FAMILY",
-              },
-            ],
-          }),
-          {
-            status: 200,
-            headers: { "content-type": "application/json" },
-          },
-        ),
+  it("lists occurrences using only documented query params", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: [
+            {
+              id: "o1",
+              description: "Conta Luz",
+              amount: "100.50",
+              dueDate: "2026-04-22",
+              status: "PENDING",
+              scope: "FAMILY",
+            },
+          ],
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
       ),
     );
+    vi.stubGlobal("fetch", fetchMock);
 
-    const result = await listOccurrences({ scope: "VISIBLE_TO_ME", month: "2026-04" });
+    const result = await listOccurrences({
+      startDate: "2026-04-01",
+      endDate: "2026-04-30",
+      month: "2026-04",
+      text: "Luz",
+      status: "pending",
+      scope: "VISIBLE_TO_ME",
+    });
     expect(result[0]).toMatchObject({
       id: "o1",
       status: "pending",
       scope: "FAMILY",
     });
+
+    const requestUrl = String(fetchMock.mock.calls[0]?.[0] ?? "");
+    expect(requestUrl).toContain("startDate=2026-04-01");
+    expect(requestUrl).toContain("endDate=2026-04-30");
+    expect(requestUrl).toContain("month=2026-04");
+    expect(requestUrl).toContain("text=Luz");
+    expect(requestUrl).toContain("status=PENDING");
+    expect(requestUrl).toContain("scope=VISIBLE_TO_ME");
+    expect(requestUrl).not.toContain("accountId=");
+    expect(requestUrl).not.toContain("size=");
   });
 
   it("loads occurrence detail", async () => {

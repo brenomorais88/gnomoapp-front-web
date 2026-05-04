@@ -1,4 +1,4 @@
-import { EntityBase, ListQueryParams, SortDirection } from "@/types/api/common";
+import { EntityBase } from "@/types/api/common";
 
 export type OccurrenceStatus = "pending" | "paid" | "overdue" | "cancelled";
 export type OccurrenceStatusApi = "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
@@ -16,17 +16,15 @@ export type OccurrenceDto = EntityBase & {
   scope?: OccurrenceScope;
 };
 
-export type OccurrenceListQuery = ListQueryParams & {
+/** Query params for `GET /occurrences` — `startDate` and `endDate` are required by the API. */
+export type OccurrenceListQuery = {
+  startDate: string;
+  endDate: string;
   scope?: OccurrenceListScope;
-  accountId?: string;
-  categoryId?: string;
   status?: OccurrenceStatus;
+  categoryId?: string;
   text?: string;
-  startDate?: string;
-  endDate?: string;
   month?: string;
-  sortBy?: string;
-  sortDirection?: SortDirection;
 };
 
 export type CreateOccurrenceInput = {
