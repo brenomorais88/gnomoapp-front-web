@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { ChevronDown, Menu } from "lucide-react";
 import {
   useEffect,
   useMemo,
@@ -10,7 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { appNavigationItems, getRouteLabelKey } from "@/lib/navigation";
+import { appNavigationMenuItems, getRouteLabelKey } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
@@ -23,15 +23,81 @@ type AppShellProps = {
 
 function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const isFinanceActive =
+    pathname === "/accounts" ||
+    pathname.startsWith("/accounts/") ||
+    pathname === "/occurrences" ||
+    pathname.startsWith("/occurrences/") ||
+    pathname === "/next-12-months" ||
+    pathname.startsWith("/next-12-months/");
+  const [isFinanceOpen, setIsFinanceOpen] = useState(isFinanceActive);
+
+  useEffect(() => {
+    if (isFinanceActive) {
+      setIsFinanceOpen(true);
+    }
+  }, [isFinanceActive]);
 
   return (
     <nav className="space-y-1">
-      {appNavigationItems.map((item) => {
+      {appNavigationMenuItems.map((item) => {
+        const Icon = item.icon;
+        if ("children" in item) {
+          return (
+            <div key={item.labelKey}>
+              <button
+                type="button"
+                onClick={() => setIsFinanceOpen((current) => !current)}
+                className={cn(
+                  "ds-focus-ring flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  isFinanceActive
+                    ? "bg-primary/12 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+                aria-expanded={isFinanceOpen}
+              >
+                <Icon className="size-4" aria-hidden="true" />
+                <span className="flex-1 text-left">{t(item.labelKey)}</span>
+                <ChevronDown
+                  className={cn(
+                    "size-4 transition-transform",
+                    isFinanceOpen ? "rotate-180" : "rotate-0",
+                  )}
+                  aria-hidden="true"
+                />
+              </button>
+              {isFinanceOpen ? (
+                <div className="mt-1 space-y-1 pl-6">
+                  {item.children.map((subItem) => {
+                    const isSubItemActive =
+                      pathname === subItem.href || pathname.startsWith(`${subItem.href}/`);
+                    return (
+                      <Link
+                        key={subItem.href}
+                        href={subItem.href}
+                        onClick={onNavigate}
+                        className={cn(
+                          "ds-focus-ring flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                          isSubItemActive
+                            ? "bg-primary/12 text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        )}
+                      >
+                        <subItem.icon className="size-4" aria-hidden="true" />
+                        <span>{t(subItem.labelKey)}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          );
+        }
+
         const isActive =
           item.href === "/"
             ? pathname === "/"
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
-        const Icon = item.icon;
 
         return (
           <Link

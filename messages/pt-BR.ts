@@ -9,6 +9,7 @@ export const ptBRMessages = {
   navigation: {
     dashboard: "Início",
     family: "Família",
+    finance: "Financeiro",
     categories: "Categorias",
     accounts: "Contas",
     occurrences: "Ocorrências",

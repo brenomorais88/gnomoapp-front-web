@@ -1,28 +1,12 @@
 import {
   CalendarRange,
-  FolderKanban,
   LayoutDashboard,
   ListTodo,
   Users,
   WalletCards,
 } from "lucide-react";
 
-export const appNavigationItems = [
-  {
-    labelKey: "navigation.dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-  },
-  {
-    labelKey: "navigation.categories",
-    href: "/categories",
-    icon: FolderKanban,
-  },
-  {
-    labelKey: "navigation.family",
-    href: "/family",
-    icon: Users,
-  },
+export const financeNavigationItems = [
   {
     labelKey: "navigation.accounts",
     href: "/accounts",
@@ -38,6 +22,30 @@ export const appNavigationItems = [
     href: "/next-12-months",
     icon: CalendarRange,
   },
+] as const;
+
+export const appNavigationMenuItems = [
+  {
+    labelKey: "navigation.dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+  },
+  {
+    labelKey: "navigation.family",
+    href: "/family",
+    icon: Users,
+  },
+  {
+    labelKey: "navigation.finance",
+    icon: WalletCards,
+    children: financeNavigationItems,
+  },
+] as const;
+
+export const appNavigationItems = [
+  appNavigationMenuItems[0],
+  appNavigationMenuItems[1],
+  ...financeNavigationItems,
 ] as const;
 
 export function getRouteLabelKey(pathname: string) {
