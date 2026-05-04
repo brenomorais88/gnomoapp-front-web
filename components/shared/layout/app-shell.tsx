@@ -190,23 +190,13 @@ export function AppShell({ children }: AppShellProps) {
     <div className="min-h-screen bg-background">
       <div className="flex min-h-screen flex-col">
         <header className="sticky top-0 z-30 w-full border-b border-primary/10 bg-gradient-to-br from-background via-background/98 to-background bg-background/95 shadow-sm backdrop-blur-lg">
-          <div className="grid h-20 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 px-4 sm:px-6 lg:px-8">
-              <div className="flex h-full items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="lg:hidden"
-                  onClick={() => setIsMobileNavOpen(true)}
-                  aria-label={t("navigation.openMenu")}
-                >
-                  <Menu className="size-4" />
-                </Button>
-                <div className="space-y-0.5">
-                  <p className="text-base font-bold text-foreground leading-none">
-                    {t(routeTitle)}
-                  </p>
-                  <p className="text-xs font-medium text-muted-foreground/80">{t("common.workflowSubtitle")}</p>
-                </div>
+          <div className="grid h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center shrink-0">
+                <img
+                  src="/gnomo_logo_assets/svg/horizontal-full-purple.svg"
+                  alt="Gnomo"
+                  className="h-8 w-auto"
+                />
               </div>
 
               <div className="hidden h-full min-w-[220px] max-w-[380px] items-center justify-center justify-self-center sm:flex">
@@ -234,10 +224,9 @@ export function AppShell({ children }: AppShellProps) {
                 <img
                   src="/gnomo_logo_assets/svg/horizontal-full-purple.svg"
                   alt="Gnomo Logo"
-                  className="hidden h-8 w-auto lg:block"
-                  aria-hidden="true"
+                  className="hidden h-7 w-auto lg:block"
                 />
-                <div className="hidden lg:block w-px h-8 bg-primary/10" aria-hidden="true" />
+                <div className="hidden lg:block w-px h-7 bg-primary/10" aria-hidden="true" />
                 <button
                   type="button"
                   onClick={() => setIsUserMenuOpen((current) => !current)}
