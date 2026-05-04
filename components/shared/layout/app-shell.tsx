@@ -194,7 +194,7 @@ export function AppShell({ children }: AppShellProps) {
                 <img
                   src="/gnomo_logo_assets/svg/horizontal-full-purple.svg"
                   alt="Gnomo"
-                  className="h-8 w-auto"
+                  className="h-10 w-auto"
                 />
               </div>
 
@@ -220,12 +220,6 @@ export function AppShell({ children }: AppShellProps) {
               </div>
 
               <div className="flex h-full items-center justify-end gap-4" ref={userMenuRef}>
-                <img
-                  src="/gnomo_logo_assets/svg/horizontal-full-purple.svg"
-                  alt="Gnomo Logo"
-                  className="hidden h-7 w-auto lg:block"
-                />
-                <div className="hidden lg:block w-px h-7 bg-primary/10" aria-hidden="true" />
                 <button
                   type="button"
                   onClick={() => setIsUserMenuOpen((current) => !current)}
