@@ -86,6 +86,7 @@ export function toFinancialDashboardOccurrenceViewModel(
 
   return {
     id: occurrence.id,
+    titleSnapshot: (occurrence.titleSnapshot ?? occurrence.description).trim() || occurrence.description,
     description: occurrence.description,
     amount: occurrence.amount,
     dueDate,

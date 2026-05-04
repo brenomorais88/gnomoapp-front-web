@@ -6,6 +6,8 @@ export type OccurrenceScope = "PERSONAL" | "FAMILY";
 export type OccurrenceListScope = "PERSONAL" | "FAMILY" | "VISIBLE_TO_ME";
 
 export type OccurrenceDto = EntityBase & {
+  /** Snapshot label from backend; falls back to `description` when absent. */
+  titleSnapshot?: string;
   description: string;
   amount: number;
   dueDate: string;

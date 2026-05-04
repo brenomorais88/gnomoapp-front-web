@@ -46,7 +46,7 @@ export function FinancialFilterBar({
   ];
 
   return (
-    <div className="space-y-5 rounded-lg border border-border/40 bg-muted/20 p-5 shadow-sm sm:p-6">
+    <div className="space-y-5 rounded-lg border border-border/40 bg-card p-5 shadow-sm sm:p-6">
       <fieldset className="space-y-2">
         <legend className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("financeDashboard.filters.scope")}

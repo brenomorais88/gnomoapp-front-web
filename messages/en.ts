@@ -10,12 +10,11 @@ export const enMessages = {
     },
   },
   navigation: {
-    financeDashboard: "Dashboard",
+    financeDashboard: "Finance",
   },
   financeDashboard: {
-    title: "Financial dashboard",
-    description:
-      "Initial financial module view with a base structure for insights and monitoring.",
+    title: "Finance",
+    description: "Month summary, filters, and bills list to track and settle.",
     loadErrorTitle: "Could not load financial dashboard",
     loadingInitial: "Loading financial dashboard...",
     revalidating: "Refreshing dashboard data...",
@@ -91,13 +90,20 @@ export const enMessages = {
     },
     monthOccurrencesList: {
       title: "Month occurrences",
-      description:
-        "All occurrences in the filtered period, sorted by payment date when paid; otherwise by due date.",
+      description: "List sorted by due date or payment date.",
       paymentDate: "Payment",
       dueDate: "Due",
       noPaymentYet: "Open",
       emptyTitle: "No occurrences this month",
       emptyDescription: "There are no items to show with the current filters.",
+      columns: {
+        titleSnapshot: "Title",
+        dueDate: "Due date",
+        amount: "Amount",
+        category: "Category",
+        status: "Status",
+        actions: "Actions",
+      },
     },
     noDailyData: "No occurrences for current filters",
     noDailyDataDescription: "Adjust filters to see entries in the daily list.",

@@ -58,6 +58,8 @@ export type FinancialDashboardOccurrenceDto = OccurrenceDto;
 
 export type FinancialDashboardOccurrenceViewModel = {
   id: string;
+  /** Display title: API `titleSnapshot` or `description`. */
+  titleSnapshot: string;
   description: string;
   amount: number;
   dueDate: Date;

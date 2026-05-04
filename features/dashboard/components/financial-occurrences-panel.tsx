@@ -15,7 +15,6 @@ type FinancialOccurrencesPanelProps = {
   items: FinancialDashboardOccurrenceViewModel[];
   timezone: string;
   getCategoryLabel: (categoryId?: string) => string;
-  payMode: boolean;
   paymentMutationBusy: boolean;
   activePaymentItemId: string | null;
   flashSuccessId: string | null;
@@ -26,7 +25,6 @@ export function FinancialOccurrencesPanel({
   items,
   timezone,
   getCategoryLabel,
-  payMode,
   paymentMutationBusy,
   activePaymentItemId,
   flashSuccessId,
@@ -35,115 +33,108 @@ export function FinancialOccurrencesPanel({
   const todayKey = getDateKeyInTimezone(new Date(), timezone);
 
   return (
-    <div className="space-y-3">
-      {items.map((item) => {
-        const paymentLabel =
-          item.paidAt && Number.isFinite(item.paidAt.getTime())
-            ? new Intl.DateTimeFormat("pt-BR", {
-                timeZone: timezone,
-                dateStyle: "short",
-                timeStyle: "short",
-              }).format(item.paidAt)
-            : null;
-        const dueLabel = new Intl.DateTimeFormat("pt-BR", {
-          timeZone: timezone,
-          dateStyle: "short",
-        }).format(item.dueDate);
+    <div className="overflow-x-auto rounded-lg border border-border/40">
+      <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+        <thead>
+          <tr className="border-b border-border/40 bg-muted/30">
+            <th className="px-3 py-3 font-semibold text-muted-foreground sm:px-4">
+              {t("financeDashboard.monthOccurrencesList.columns.titleSnapshot")}
+            </th>
+            <th className="whitespace-nowrap px-3 py-3 font-semibold text-muted-foreground sm:px-4">
+              {t("financeDashboard.monthOccurrencesList.columns.dueDate")}
+            </th>
+            <th className="whitespace-nowrap px-3 py-3 font-semibold text-muted-foreground sm:px-4">
+              {t("financeDashboard.monthOccurrencesList.columns.amount")}
+            </th>
+            <th className="px-3 py-3 font-semibold text-muted-foreground sm:px-4">
+              {t("financeDashboard.monthOccurrencesList.columns.category")}
+            </th>
+            <th className="whitespace-nowrap px-3 py-3 font-semibold text-muted-foreground sm:px-4">
+              {t("financeDashboard.monthOccurrencesList.columns.status")}
+            </th>
+            <th className="whitespace-nowrap px-3 py-3 text-right font-semibold text-muted-foreground sm:px-4">
+              {t("financeDashboard.monthOccurrencesList.columns.actions")}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => {
+            const dueLabel = new Intl.DateTimeFormat("pt-BR", {
+              timeZone: timezone,
+              dateStyle: "short",
+            }).format(item.dueDate);
 
-        const overdueRow =
-          item.status === "pending" && isPendingOverdue(item, todayKey);
-        const showPaymentActions =
-          item.status === "pending" || item.status === "paid";
-        const isUpdatingThisRow =
-          activePaymentItemId === item.id && paymentMutationBusy;
-        const categoryOnly = getCategoryLabel(item.categoryId);
+            const overdueRow =
+              item.status === "pending" && isPendingOverdue(item, todayKey);
+            const showPaymentActions =
+              item.status === "pending" || item.status === "paid";
+            const isUpdatingThisRow =
+              activePaymentItemId === item.id && paymentMutationBusy;
 
-        return (
-          <div
-            key={item.id}
-            className={cn(
-              "grid gap-4 rounded-lg border bg-card p-4 shadow-sm transition-all duration-200 hover:shadow-md md:grid-cols-12 md:items-center md:gap-4 md:py-5",
-              overdueRow
-                ? "border-destructive/30 bg-destructive/[0.08]"
-                : "border-border/40 hover:bg-muted/30",
-              flashSuccessId === item.id && "finance-row-flash ring-2 ring-success/40",
-            )}
-          >
-            <div className="md:col-span-4">
-              <p className="font-bold leading-snug text-foreground">{item.description}</p>
-              <p className="mt-1.5 text-sm text-muted-foreground">{categoryOnly}</p>
-            </div>
-
-            <div className="md:col-span-3">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                {t("financeDashboard.monthOccurrencesList.dueDate")}
-              </p>
-              <p className="text-sm font-semibold text-foreground">{dueLabel}</p>
-              <p className="mt-2.5 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                {t("financeDashboard.monthOccurrencesList.paymentDate")}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {paymentLabel ?? t("financeDashboard.monthOccurrencesList.noPaymentYet")}
-              </p>
-            </div>
-
-            <div className="flex items-baseline justify-between gap-3 md:col-span-2 md:flex-col md:items-end md:justify-center">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground md:hidden">
-                {t("occurrences.table.amount")}
-              </p>
-              <p
+            return (
+              <tr
+                key={item.id}
                 className={cn(
-                  "text-lg font-bold tabular-nums tracking-tight text-foreground md:text-right",
-                  payMode && "text-2xl",
+                  "border-b border-border/30 transition-colors last:border-b-0",
+                  overdueRow ? "bg-destructive/[0.06]" : "bg-card hover:bg-muted/20",
+                  flashSuccessId === item.id && "finance-row-flash bg-success/5",
                 )}
               >
-                {formatCurrencyBRL(item.amount)}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 md:col-span-1 md:justify-center">
-              <FinanceOccurrenceBadge status={item.status as OccurrenceStatus} />
-            </div>
-
-            <div className="flex flex-col gap-2 md:col-span-2 md:items-end">
-              {showPaymentActions ? (
-                item.status === "pending" ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size={payMode ? "default" : "sm"}
-                    className={cn(
-                      "w-full gap-2 md:w-auto md:min-w-[9rem] font-semibold transition-all",
-                      payMode && "min-h-11 text-base",
-                    )}
-                    disabled={paymentMutationBusy}
-                    onClick={() => onPayment(item)}
-                  >
-                    <CheckCircle2 className="size-4" />
-                    {isUpdatingThisRow
-                      ? t("financeDashboard.dailyList.updatingStatus")
-                      : t("financeDashboard.dailyList.markAsPaid")}
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size={payMode ? "default" : "sm"}
-                    className={cn("w-full gap-2 md:w-auto font-semibold transition-all", payMode && "min-h-11")}
-                    disabled={paymentMutationBusy}
-                    onClick={() => onPayment(item)}
-                  >
-                    <RefreshCw className="size-4" />
-                    {isUpdatingThisRow
-                      ? t("financeDashboard.dailyList.updatingStatus")
-                      : t("financeDashboard.dailyList.unmarkPaid")}
-                  </Button>
-                )
-              ) : null}
-            </div>
-          </div>
-        );
-      })}
+                <td className="max-w-[220px] px-3 py-3 align-middle font-medium text-foreground sm:max-w-xs sm:px-4">
+                  <span className="line-clamp-2">{item.titleSnapshot}</span>
+                </td>
+                <td className="whitespace-nowrap px-3 py-3 align-middle tabular-nums text-foreground sm:px-4">
+                  {dueLabel}
+                </td>
+                <td className="whitespace-nowrap px-3 py-3 align-middle font-semibold tabular-nums text-foreground sm:px-4">
+                  {formatCurrencyBRL(item.amount)}
+                </td>
+                <td className="max-w-[140px] px-3 py-3 align-middle text-muted-foreground sm:max-w-[180px] sm:px-4">
+                  <span className="line-clamp-2">{getCategoryLabel(item.categoryId)}</span>
+                </td>
+                <td className="px-3 py-3 align-middle sm:px-4">
+                  <FinanceOccurrenceBadge status={item.status as OccurrenceStatus} />
+                </td>
+                <td className="px-3 py-3 align-middle text-right sm:px-4">
+                  {showPaymentActions ? (
+                    item.status === "pending" ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 font-semibold"
+                        disabled={paymentMutationBusy}
+                        onClick={() => onPayment(item)}
+                      >
+                        <CheckCircle2 className="size-4 shrink-0" />
+                        {isUpdatingThisRow
+                          ? t("financeDashboard.dailyList.updatingStatus")
+                          : t("financeDashboard.dailyList.markAsPaid")}
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 font-semibold"
+                        disabled={paymentMutationBusy}
+                        onClick={() => onPayment(item)}
+                      >
+                        <RefreshCw className="size-4 shrink-0" />
+                        {isUpdatingThisRow
+                          ? t("financeDashboard.dailyList.updatingStatus")
+                          : t("financeDashboard.dailyList.unmarkPaid")}
+                      </Button>
+                    )
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

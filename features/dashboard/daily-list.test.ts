@@ -7,6 +7,7 @@ describe("daily list selector", () => {
     const occurrences: FinancialDashboardOccurrenceViewModel[] = [
       {
         id: "o1",
+        titleSnapshot: "Conta 1",
         description: "Conta 1",
         amount: 10,
         dueDate: new Date("2026-05-10T12:00:00"),
@@ -15,6 +16,7 @@ describe("daily list selector", () => {
       },
       {
         id: "o2",
+        titleSnapshot: "Conta 2",
         description: "Conta 2",
         amount: 20,
         dueDate: new Date("2026-05-11T12:00:00"),

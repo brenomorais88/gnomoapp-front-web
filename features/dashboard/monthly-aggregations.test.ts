@@ -10,6 +10,7 @@ describe("monthly dashboard aggregations", () => {
     const occurrences: FinancialDashboardOccurrenceViewModel[] = [
       {
         id: "1",
+        titleSnapshot: "Pending overdue",
         description: "Pending overdue",
         amount: 100,
         dueDate: new Date("2026-05-10T12:00:00"),
@@ -18,6 +19,7 @@ describe("monthly dashboard aggregations", () => {
       },
       {
         id: "2",
+        titleSnapshot: "Pending future",
         description: "Pending future",
         amount: 200,
         dueDate: new Date("2026-05-25T12:00:00"),
@@ -26,6 +28,7 @@ describe("monthly dashboard aggregations", () => {
       },
       {
         id: "3",
+        titleSnapshot: "Paid",
         description: "Paid",
         amount: 300,
         dueDate: new Date("2026-05-15T12:00:00"),
@@ -34,6 +37,7 @@ describe("monthly dashboard aggregations", () => {
       },
       {
         id: "4",
+        titleSnapshot: "Cancelled",
         description: "Cancelled",
         amount: 400,
         dueDate: new Date("2026-05-18T12:00:00"),

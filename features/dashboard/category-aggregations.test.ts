@@ -7,6 +7,7 @@ describe("category pie aggregations", () => {
     const occurrences: FinancialDashboardOccurrenceViewModel[] = [
       {
         id: "o1",
+        titleSnapshot: "Conta 1",
         description: "Conta 1",
         amount: 100,
         dueDate: new Date("2026-05-10T12:00:00"),
@@ -16,6 +17,7 @@ describe("category pie aggregations", () => {
       },
       {
         id: "o2",
+        titleSnapshot: "Conta 2",
         description: "Conta 2",
         amount: 300,
         dueDate: new Date("2026-05-12T12:00:00"),
@@ -50,6 +52,7 @@ describe("category pie aggregations", () => {
     const occurrences: FinancialDashboardOccurrenceViewModel[] = [
       {
         id: "o1",
+        titleSnapshot: "Conta sem categoria",
         description: "Conta sem categoria",
         amount: 50,
         dueDate: new Date("2026-05-10T12:00:00"),

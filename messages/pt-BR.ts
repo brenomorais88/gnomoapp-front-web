@@ -8,7 +8,7 @@ export const ptBRMessages = {
   },
   navigation: {
     dashboard: "Início",
-    financeDashboard: "Dashboard",
+    financeDashboard: "Financeiro",
     family: "Família",
     finance: "Financeiro",
     categories: "Categorias",
@@ -169,9 +169,8 @@ export const ptBRMessages = {
     next7DaysHint: "Com base na janela de vencimento",
   },
   financeDashboard: {
-    title: "Dashboard financeiro",
-    description:
-      "Visão inicial do módulo financeiro com estrutura base para indicadores e acompanhamentos.",
+    title: "Financeiro",
+    description: "Resumo do mês, filtros e lista de contas para acompanhar e quitar.",
     loadErrorTitle: "Não foi possível carregar o dashboard financeiro",
     loadingInitial: "Carregando dashboard financeiro...",
     revalidating: "Atualizando dados do dashboard...",
@@ -248,13 +247,20 @@ export const ptBRMessages = {
     },
     monthOccurrencesList: {
       title: "Ocorrências do mês",
-      description:
-        "Todas as ocorrências do período filtrado, ordenadas por data de pagamento; sem pagamento, usa a data de vencimento.",
+      description: "Lista em ordem de vencimento ou data de pagamento.",
       paymentDate: "Pagamento",
       dueDate: "Vencimento",
       noPaymentYet: "Em aberto",
       emptyTitle: "Sem ocorrências no mês",
       emptyDescription: "Não há itens para exibir com os filtros atuais.",
+      columns: {
+        titleSnapshot: "Título",
+        dueDate: "Data de vencimento",
+        amount: "Valor",
+        category: "Categoria",
+        status: "Status",
+        actions: "Ações",
+      },
     },
     noDailyData: "Sem ocorrências para os filtros atuais",
     noDailyDataDescription: "Ajuste os filtros para visualizar itens na lista diária.",

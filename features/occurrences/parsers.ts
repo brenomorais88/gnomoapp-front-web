@@ -63,8 +63,13 @@ export function mapOccurrenceFromApi(payload: unknown): OccurrenceDto {
   const parsedAmount =
     typeof rawAmount === "number" ? rawAmount : Number.parseFloat(String(rawAmount));
 
+  const titleSnap = payload.titleSnapshot ?? payload.title_snapshot;
+  const titleSnapshot =
+    typeof titleSnap === "string" && titleSnap.trim() ? titleSnap.trim() : undefined;
+
   return {
     id: String(payload.id ?? ""),
+    titleSnapshot,
     description: String(payload.description ?? payload.title ?? ""),
     amount: Number.isNaN(parsedAmount) ? 0 : parsedAmount,
     dueDate: normalizeDateString(payload.dueDate),

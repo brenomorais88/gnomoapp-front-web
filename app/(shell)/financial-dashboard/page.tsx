@@ -22,17 +22,13 @@ import { PageHeader } from "@/components/shared/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { useAccountsListQuery } from "@/features/accounts/hooks";
 import { useCategoriesListQuery } from "@/features/categories/hooks";
-import { aggregateCategoryPieData } from "@/features/dashboard/category-aggregations";
 import { DashboardActionCard } from "@/features/dashboard/components/dashboard-action-card";
-import { FinancialDistributionSection } from "@/features/dashboard/components/financial-distribution-section";
 import {
   FinancialFilterBar,
   type FinanceStatusSegment,
 } from "@/features/dashboard/components/financial-filter-bar";
-import { FinanceModeToggle } from "@/features/dashboard/components/finance-mode-toggle";
 import { FinancialOccurrencesPanel } from "@/features/dashboard/components/financial-occurrences-panel";
-import { deriveFinancialKpis, isPendingOverdue } from "@/features/dashboard/lib/financial-kpis";
-import { getDateKeyInTimezone } from "@/features/dashboard/parsers";
+import { deriveFinancialKpis } from "@/features/dashboard/lib/financial-kpis";
 import { useFinancialDashboardDataQuery } from "@/features/dashboard/hooks";
 import {
   calculateMonthlyCardsSummary,
@@ -50,8 +46,6 @@ import { ApiError, getErrorMessage } from "@/lib/api/error";
 import { t } from "@/lib/i18n";
 
 const allStatuses: OccurrenceStatus[] = ["pending", "paid", "overdue", "cancelled"];
-
-const chartColors = ["#2563EB", "#7C3AED", "#16A34A", "#F59E0B", "#DC2626", "#0EA5E9"];
 
 function statusSegmentToApiStatuses(segment: FinanceStatusSegment): OccurrenceStatus[] {
   switch (segment) {
@@ -87,7 +81,6 @@ function FinancialDashboardContent() {
   const [accountId, setAccountId] = useState("");
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [statusSegment, setStatusSegment] = useState<FinanceStatusSegment>("all");
-  const [payMode, setPayMode] = useState(false);
   const [listFeedback, setListFeedback] = useState<{
     tone: InlineFeedbackTone;
     message: string;
@@ -134,15 +127,6 @@ function FinancialDashboardContent() {
     return map;
   }, [categoriesQuery.data]);
 
-  const pieData = useMemo(() => {
-    return aggregateCategoryPieData(
-      dashboardDataQuery.data?.occurrences ?? [],
-      (categoryId) => categoriesById.get(categoryId) ?? "",
-      t("financeDashboard.pie.fallbackCategory"),
-      chartColors,
-    );
-  }, [categoriesById, dashboardDataQuery.data?.occurrences]);
-
   const monthOccurrencesSorted = useMemo(() => {
     const rows: FinancialDashboardOccurrenceViewModel[] = [
       ...(dashboardDataQuery.data?.occurrences ?? []),
@@ -172,27 +156,12 @@ function FinancialDashboardContent() {
     return monthOccurrencesSorted.filter((item) => {
       const cat = (categoriesById.get(item.categoryId ?? "") ?? "").toLowerCase();
       return (
+        item.titleSnapshot.toLowerCase().includes(searchQuery) ||
         item.description.toLowerCase().includes(searchQuery) ||
         cat.includes(searchQuery)
       );
     });
   }, [monthOccurrencesSorted, searchQuery, categoriesById]);
-
-  const displayOccurrences = useMemo(() => {
-    if (!payMode) {
-      return filteredBySearch;
-    }
-    const todayKey = getDateKeyInTimezone(new Date(), timezone);
-    const pendingOnly = filteredBySearch.filter((item) => item.status === "pending");
-    return [...pendingOnly].sort((a, b) => {
-      const aOver = isPendingOverdue(a, todayKey);
-      const bOver = isPendingOverdue(b, todayKey);
-      if (aOver !== bOver) {
-        return aOver ? -1 : 1;
-      }
-      return a.dueDate.getTime() - b.dueDate.getTime();
-    });
-  }, [filteredBySearch, payMode, timezone]);
 
   const cards = useMemo(() => {
     return calculateMonthlyCardsSummary(
@@ -392,7 +361,6 @@ function FinancialDashboardContent() {
             secondaryLine={t("financeDashboard.actionCards.upcomingSubtitle")}
             actionLabel={t("financeDashboard.actionCards.upcomingAction")}
             onAction={() => {
-              setPayMode(true);
               setStatusSegment("pending");
               scrollToOccurrences();
             }}
@@ -400,23 +368,6 @@ function FinancialDashboardContent() {
           />
         </section>
       )}
-
-      <FinancialDistributionSection
-        pieData={pieData}
-        isLoading={dashboardDataQuery.isLoading || categoriesQuery.isLoading}
-        isError={Boolean(dashboardDataQuery.isError || categoriesQuery.isError)}
-        errorMessage={
-          dashboardDataQuery.error
-            ? getErrorMessage(dashboardDataQuery.error)
-            : categoriesQuery.error
-              ? getErrorMessage(categoriesQuery.error)
-              : undefined
-        }
-        onRetry={() => {
-          void dashboardDataQuery.refetch();
-          void categoriesQuery.refetch();
-        }}
-      />
 
       {!dashboardDataQuery.isLoading && !dashboardDataQuery.isError && !hasMonthlyData ? (
         <EmptyState
@@ -432,7 +383,6 @@ function FinancialDashboardContent() {
         title={t("financeDashboard.monthOccurrencesList.title")}
         description={t("financeDashboard.monthOccurrencesList.description")}
         className="w-full max-w-none rounded-xl border-border/40 shadow-sm"
-        action={<FinanceModeToggle payMode={payMode} onPayModeChange={setPayMode} />}
       >
         {dashboardDataQuery.isLoading ? (
           <LoadingState label={t("states.loading")} className="min-h-24" />
@@ -446,7 +396,7 @@ function FinancialDashboardContent() {
               </Button>
             }
           />
-        ) : displayOccurrences.length === 0 ? (
+        ) : filteredBySearch.length === 0 ? (
           <EmptyState
             title={t("financeDashboard.monthOccurrencesList.emptyTitle")}
             description={t("financeDashboard.monthOccurrencesList.emptyDescription")}
@@ -457,10 +407,9 @@ function FinancialDashboardContent() {
               <InlineFeedback tone={listFeedback.tone} message={listFeedback.message} />
             ) : null}
             <FinancialOccurrencesPanel
-              items={displayOccurrences}
+              items={filteredBySearch}
               timezone={timezone}
               getCategoryLabel={getCategoryLabel}
-              payMode={payMode}
               paymentMutationBusy={paymentMutationBusy}
               activePaymentItemId={activePaymentItemId}
               flashSuccessId={flashRowId}
