@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { useCategoriesListQuery } from "@/features/categories/hooks";
@@ -54,20 +54,32 @@ export function AccountForm({
     name: "ownershipType",
   });
 
+  const initialValuesSnapshot = useMemo(
+    () => JSON.stringify(initialValues ?? null),
+    [initialValues],
+  );
+
   useEffect(() => {
+    let parsed: Partial<AccountFormValues> | undefined;
+    try {
+      parsed = initialValuesSnapshot === "null" ? undefined : JSON.parse(initialValuesSnapshot);
+    } catch {
+      parsed = undefined;
+    }
+
     form.reset({
-      title: initialValues?.title ?? "",
-      baseAmount: initialValues?.baseAmount ?? "0.00",
-      startDate: initialValues?.startDate ?? "",
-      endDate: initialValues?.endDate ?? "",
-      recurrenceType: initialValues?.recurrenceType ?? "MONTHLY",
-      categoryId: initialValues?.categoryId ?? "",
-      ownershipType: initialValues?.ownershipType ?? "PERSONAL",
-      responsibleMemberId: initialValues?.responsibleMemberId ?? "",
-      notes: initialValues?.notes ?? "",
-      active: initialValues?.active ?? true,
+      title: parsed?.title ?? "",
+      baseAmount: parsed?.baseAmount ?? "0.00",
+      startDate: parsed?.startDate ?? "",
+      endDate: parsed?.endDate ?? "",
+      recurrenceType: parsed?.recurrenceType ?? "MONTHLY",
+      categoryId: parsed?.categoryId ?? "",
+      ownershipType: parsed?.ownershipType ?? "PERSONAL",
+      responsibleMemberId: parsed?.responsibleMemberId ?? "",
+      notes: parsed?.notes ?? "",
+      active: parsed?.active ?? true,
     });
-  }, [form, initialValues]);
+  }, [form, initialValuesSnapshot]);
 
   if (categoriesQuery.isLoading || familyMembersQuery.isLoading) {
     return <LoadingState label={t("accounts.form.loadingOptions")} className="min-h-24" />;

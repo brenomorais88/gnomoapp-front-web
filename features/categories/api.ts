@@ -24,13 +24,28 @@ function normalizeScope(value: unknown): CategoryScope {
   return "PERSONAL";
 }
 
+/** Backend may expose the primary key as `id`, `uuid`, etc. Empty `value`s on `<option>` break selects + Zod. */
+function resolveCategoryId(payload: Record<string, unknown>): string {
+  for (const key of ["id", "uuid", "categoryId", "publicId"] as const) {
+    const raw = payload[key];
+    if (raw === undefined || raw === null) {
+      continue;
+    }
+    const str = String(raw).trim();
+    if (str) {
+      return str;
+    }
+  }
+  return "";
+}
+
 function mapCategory(payload: unknown): CategoryDto {
   if (!isRecord(payload)) {
     return payload as CategoryDto;
   }
 
   return {
-    id: String(payload.id ?? ""),
+    id: resolveCategoryId(payload),
     name: String(payload.name ?? ""),
     description: payload.description ? String(payload.description) : undefined,
     color: payload.color ? String(payload.color) : undefined,
