@@ -114,4 +114,20 @@
       background-color: transparent;
     }
   }
+
+  .gnomo-gradient-text {
+    @apply bg-gradient-to-r from-primary via-secondary to-success bg-clip-text text-transparent;
+  }
+
+  .gnomo-nav-active {
+    @apply border-l-primary bg-gradient-to-r from-primary/5 to-transparent shadow-sm;
+  }
+
+  .gnomo-card-hover {
+    @apply transition-all duration-200 hover:border-primary/30 hover:shadow-md hover:scale-[1.02];
+  }
+
+  .gnomo-smooth-border {
+    @apply border-border/50;
+  }
 }

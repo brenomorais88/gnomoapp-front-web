@@ -18,18 +18,18 @@ export function ErrorState({
   return (
     <div
       className={cn(
-        "rounded-xl border border-destructive/20 bg-destructive/5 p-5 sm:p-6",
+        "rounded-lg border border-destructive/30 bg-destructive/8 p-6 sm:p-7",
         className,
       )}
       role="alert"
       aria-live="assertive"
     >
-      <div className="flex items-start gap-3">
-        <AlertTriangle className="mt-0.5 size-5 text-destructive" aria-hidden="true" />
+      <div className="flex items-start gap-4">
+        <AlertTriangle className="mt-0.5 size-6 text-destructive shrink-0" aria-hidden="true" />
         <div>
-          <h3 className="text-base font-semibold text-foreground">{title}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-          {action ? <div className="mt-4">{action}</div> : null}
+          <h3 className="text-base font-bold text-foreground">{title}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+          {action ? <div className="mt-5">{action}</div> : null}
         </div>
       </div>
     </div>

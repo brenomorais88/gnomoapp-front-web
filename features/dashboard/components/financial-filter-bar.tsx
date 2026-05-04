@@ -46,22 +46,22 @@ export function FinancialFilterBar({
   ];
 
   return (
-    <div className="flex flex-col gap-6 rounded-2xl border border-border/70 bg-muted/30 p-4 shadow-sm sm:p-5 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between lg:gap-8">
+    <div className="flex flex-col gap-5 rounded-lg border border-border/40 bg-muted/20 p-5 shadow-sm sm:p-6 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between lg:gap-6">
       <fieldset className="min-w-0 space-y-2">
-        <legend className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <legend className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("financeDashboard.filters.scope")}
         </legend>
-        <div className="inline-flex flex-wrap gap-1 rounded-xl border border-border/80 bg-background p-1 shadow-inner">
+        <div className="inline-flex flex-wrap gap-1 rounded-lg border border-border/60 bg-background p-1.5 shadow-sm">
           {SCOPES.map((value) => (
             <button
               key={value}
               type="button"
               onClick={() => onScopeChange(value)}
               className={cn(
-                "ds-focus-ring rounded-lg px-3 py-2 text-xs font-semibold transition-all sm:text-sm",
+                "ds-focus-ring rounded-md px-3 py-2 text-xs font-bold transition-all sm:text-sm",
                 scope === value
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-md"
+                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
               )}
               aria-pressed={scope === value}
             >
@@ -72,9 +72,9 @@ export function FinancialFilterBar({
       </fieldset>
 
       <div className="grid w-full gap-4 sm:grid-cols-2 lg:flex lg:w-auto lg:min-w-0 lg:flex-1 lg:items-end lg:justify-end lg:gap-4">
-        <div className="space-y-1.5 sm:min-w-[200px]">
+        <div className="space-y-2 sm:min-w-[200px]">
           <label
-            className="text-xs font-medium text-muted-foreground"
+            className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
             htmlFor="financial-filter-account"
           >
             {t("financeDashboard.filters.account")}
@@ -83,7 +83,7 @@ export function FinancialFilterBar({
             id="financial-filter-account"
             value={accountId}
             onChange={(e) => onAccountChange(e.target.value)}
-            className="ds-focus-ring h-10 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground shadow-sm"
+            className="ds-focus-ring h-10 w-full rounded-lg border border-border/50 bg-background px-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-border/70"
           >
             <option value="">{t("financeDashboard.filters.allAccounts")}</option>
             {accounts.map((account) => (
@@ -93,9 +93,9 @@ export function FinancialFilterBar({
             ))}
           </select>
         </div>
-        <div className="space-y-1.5 sm:min-w-[200px]">
+        <div className="space-y-2 sm:min-w-[200px]">
           <label
-            className="text-xs font-medium text-muted-foreground"
+            className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
             htmlFor="financial-filter-month"
           >
             {t("financeDashboard.filters.month")}
@@ -105,17 +105,17 @@ export function FinancialFilterBar({
             type="month"
             value={month}
             onChange={(e) => onMonthChange(e.target.value)}
-            className="ds-focus-ring h-10 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground shadow-sm"
+            className="ds-focus-ring h-10 w-full rounded-lg border border-border/50 bg-background px-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-border/70"
           />
         </div>
       </div>
 
-      <fieldset className="w-full min-w-0 space-y-2 lg:max-w-xl">
-        <legend className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <fieldset className="w-full min-w-0 space-y-2 lg:max-w-2xl">
+        <legend className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("financeDashboard.filters.status")}
         </legend>
         <div
-          className="flex flex-wrap gap-1.5"
+          className="flex flex-wrap gap-2"
           role="group"
           aria-label={t("financeDashboard.filters.status")}
         >
@@ -127,10 +127,10 @@ export function FinancialFilterBar({
                 type="button"
                 onClick={() => onStatusSegmentChange(opt.id)}
                 className={cn(
-                  "ds-focus-ring rounded-full border px-3 py-1.5 text-xs font-semibold transition-all sm:px-4 sm:text-sm",
+                  "ds-focus-ring rounded-full border px-4 py-2 text-xs font-bold transition-all sm:text-sm",
                   active
-                    ? "border-primary bg-primary/12 text-primary shadow-sm"
-                    : "border-border/80 bg-background text-muted-foreground hover:border-border hover:text-foreground",
+                    ? "border-primary bg-gradient-to-r from-primary/15 to-secondary/10 text-primary shadow-sm"
+                    : "border-border/50 bg-background text-muted-foreground hover:border-border hover:text-foreground hover:bg-muted/30",
                 )}
                 aria-pressed={active}
               >

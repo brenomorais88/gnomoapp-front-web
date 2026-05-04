@@ -10,14 +10,14 @@ export function LoadingState({ label = "Loading data...", className }: LoadingSt
   return (
     <div
       className={cn(
-        "flex min-h-36 items-center justify-center rounded-xl border border-border bg-card p-6",
+        "flex min-h-36 items-center justify-center rounded-lg border border-border/40 bg-card p-6",
         className,
       )}
       role="status"
       aria-live="polite"
     >
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+      <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
+        <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
         <span>{label}</span>
       </div>
     </div>

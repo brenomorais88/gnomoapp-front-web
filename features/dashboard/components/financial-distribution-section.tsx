@@ -28,12 +28,12 @@ export function FinancialDistributionSection({
   const top = pieData.slice(0, 6);
 
   return (
-    <Card className="overflow-hidden rounded-2xl border-border/70 shadow-sm transition-shadow hover:shadow-md">
-      <CardHeader className="border-b border-border/50 pb-3">
-        <p className="text-sm font-semibold text-foreground">{t("financeDashboard.pie.title")}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{t("financeDashboard.pie.description")}</p>
+    <Card className="overflow-hidden rounded-xl border-border/40 shadow-sm transition-shadow hover:shadow-md">
+      <CardHeader className="border-b border-border/30 pb-4">
+        <p className="text-base font-bold text-foreground">{t("financeDashboard.pie.title")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("financeDashboard.pie.description")}</p>
       </CardHeader>
-      <CardContent className="space-y-4 p-4 sm:p-5">
+      <CardContent className="space-y-5 p-5 sm:p-6">
         {isLoading ? (
           <LoadingState label={t("states.loading")} className="min-h-40 py-6" />
         ) : isError ? (
@@ -54,15 +54,15 @@ export function FinancialDistributionSection({
           />
         ) : (
           <>
-            <div className="mx-auto h-44 w-full max-w-[280px] sm:h-52 sm:max-w-sm">
+            <div className="mx-auto h-48 w-full max-w-sm">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={pieData}
                     dataKey="total"
                     nameKey="name"
-                    innerRadius={48}
-                    outerRadius={72}
+                    innerRadius={52}
+                    outerRadius={76}
                   >
                     {pieData.map((entry) => (
                       <Cell key={entry.categoryId} fill={entry.color} />
@@ -80,26 +80,26 @@ export function FinancialDistributionSection({
               </ResponsiveContainer>
             </div>
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 {t("financeDashboard.distribution.topCategories")}
               </p>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {top.map((entry) => (
                   <li
                     key={entry.categoryId}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/30 px-3 py-2 text-sm"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5 text-sm transition-colors hover:bg-muted/50"
                   >
-                    <span className="flex min-w-0 items-center gap-2">
+                    <span className="flex min-w-0 items-center gap-2.5">
                       <span
-                        className="size-2.5 shrink-0 rounded-full"
+                        className="size-3 shrink-0 rounded-full"
                         style={{ backgroundColor: entry.color }}
                         aria-hidden="true"
                       />
                       <span className="truncate font-medium text-foreground">{entry.name}</span>
                     </span>
-                    <span className="shrink-0 tabular-nums text-muted-foreground">
+                    <span className="shrink-0 tabular-nums text-muted-foreground font-medium">
                       {formatCurrencyBRL(entry.total)}{" "}
-                      <span className="text-xs">({entry.percentage.toFixed(0)}%)</span>
+                      <span className="text-xs font-normal">({entry.percentage.toFixed(0)}%)</span>
                     </span>
                   </li>
                 ))}
