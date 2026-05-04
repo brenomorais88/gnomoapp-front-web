@@ -38,6 +38,8 @@ export const accountFormSchema = z
       .optional()
       .or(z.literal("")),
     active: z.boolean(),
+    /** UI-only: derives endDate from start + recurrence; not sent to the API. */
+    installmentCount: z.string(),
   })
   .refine(
     (values) => {
@@ -63,6 +65,23 @@ export const accountFormSchema = z
     {
       path: ["endDate"],
       message: t("validation.invalidEndDate"),
+    },
+  )
+  .refine(
+    (values) => {
+      if (!values.startDate) {
+        return true;
+      }
+      const v = values.installmentCount.trim();
+      if (v === "") {
+        return true;
+      }
+      const n = Number.parseInt(v, 10);
+      return !Number.isNaN(n) && n >= 1 && n <= 999;
+    },
+    {
+      path: ["installmentCount"],
+      message: t("validation.invalidInstallmentCount"),
     },
   );
 

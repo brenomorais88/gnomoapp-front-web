@@ -1,15 +1,22 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useEffect, useMemo, type ChangeEvent } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { useCategoriesListQuery } from "@/features/categories/hooks";
 import { accountFormSchema, AccountFormValues, recurrenceTypeOptions } from "@/features/accounts/schema";
+import { computeEndDateFromInstallments } from "@/features/accounts/lib/compute-end-date";
 import { LoadingState } from "@/components/shared/feedback/loading-state";
 import { ErrorState } from "@/components/shared/feedback/error-state";
 import { useMyFamilyMembersQuery } from "@/features/families/hooks";
 import { getErrorMessage } from "@/lib/api/error";
+import {
+  centsToApiDecimalString,
+  decimalApiStringToCents,
+  formatCentsAsBrlDisplay,
+  parseMoneyInputToCents,
+} from "@/lib/format/brl-money-input";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 
@@ -47,12 +54,17 @@ export function AccountForm({
       responsibleMemberId: initialValues?.responsibleMemberId ?? "",
       notes: initialValues?.notes ?? "",
       active: initialValues?.active ?? true,
+      installmentCount: "",
     },
   });
   const ownershipType = useWatch({
     control: form.control,
     name: "ownershipType",
   });
+  const startDate = useWatch({ control: form.control, name: "startDate" });
+  const recurrenceType = useWatch({ control: form.control, name: "recurrenceType" });
+  const installmentCount = useWatch({ control: form.control, name: "installmentCount" });
+  const { setValue } = form;
 
   const initialValuesSnapshot = useMemo(
     () => JSON.stringify(initialValues ?? null),
@@ -78,8 +90,27 @@ export function AccountForm({
       responsibleMemberId: parsed?.responsibleMemberId ?? "",
       notes: parsed?.notes ?? "",
       active: parsed?.active ?? true,
+      installmentCount: "",
     });
   }, [form, initialValuesSnapshot]);
+
+  useEffect(() => {
+    if (!startDate) {
+      setValue("installmentCount", "", { shouldValidate: true });
+    }
+  }, [startDate, setValue]);
+
+  useEffect(() => {
+    const raw = installmentCount?.trim() ?? "";
+    const n = Number.parseInt(raw, 10);
+    if (!startDate || raw === "" || Number.isNaN(n) || n < 1) {
+      return;
+    }
+    const end = computeEndDateFromInstallments(startDate, recurrenceType, n);
+    if (end) {
+      setValue("endDate", end, { shouldDirty: true, shouldValidate: true });
+    }
+  }, [startDate, recurrenceType, installmentCount, setValue]);
 
   if (categoriesQuery.isLoading || familyMembersQuery.isLoading) {
     return <LoadingState label={t("accounts.form.loadingOptions")} className="min-h-24" />;
@@ -132,11 +163,29 @@ export function AccountForm({
           <label htmlFor="account-baseAmount" className="text-sm font-medium text-foreground">
             {t("accounts.form.baseAmount")}
           </label>
-          <input
-            id="account-baseAmount"
-            className={inputClassName}
-            placeholder="0.00"
-            {...form.register("baseAmount")}
+          <Controller
+            name="baseAmount"
+            control={form.control}
+            render={({ field }) => {
+              const cents = decimalApiStringToCents(field.value || "0");
+              return (
+                <input
+                  id="account-baseAmount"
+                  className={inputClassName}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder={formatCentsAsBrlDisplay(0)}
+                  value={formatCentsAsBrlDisplay(cents)}
+                  onChange={(e) => {
+                    const nextCents = parseMoneyInputToCents(e.target.value);
+                    field.onChange(centsToApiDecimalString(nextCents));
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                />
+              );
+            }}
           />
           {form.formState.errors.baseAmount ? (
             <p className="text-xs text-destructive">
@@ -180,13 +229,48 @@ export function AccountForm({
         </div>
 
         <div className="grid gap-2">
+          <label htmlFor="account-installmentCount" className="text-sm font-medium text-foreground">
+            {t("accounts.form.installmentCount")}
+          </label>
+          <input
+            id="account-installmentCount"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={3}
+            disabled={!startDate}
+            placeholder="—"
+            className={cn(inputClassName, "h-10", !startDate && "cursor-not-allowed opacity-60")}
+            {...(() => {
+              const { onChange, ...rest } = form.register("installmentCount");
+              return {
+                ...rest,
+                onChange: (e: ChangeEvent<HTMLInputElement>) => {
+                  const cleaned = e.target.value.replace(/\D/g, "").slice(0, 3);
+                  e.target.value = cleaned;
+                  onChange(e);
+                },
+              };
+            })()}
+          />
+          {!startDate ? (
+            <p className="text-xs text-muted-foreground">{t("accounts.form.installmentCountHint")}</p>
+          ) : null}
+          {form.formState.errors.installmentCount ? (
+            <p className="text-xs text-destructive">
+              {form.formState.errors.installmentCount.message}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="grid gap-2 sm:col-span-2">
           <label htmlFor="account-endDate" className="text-sm font-medium text-foreground">
             {t("accounts.form.endDate")}
           </label>
           <input
             id="account-endDate"
             type="date"
-            className={cn(inputClassName, "h-10")}
+            className={cn(inputClassName, "h-10 max-w-full sm:max-w-xs")}
             {...form.register("endDate")}
           />
           {form.formState.errors.endDate ? (
