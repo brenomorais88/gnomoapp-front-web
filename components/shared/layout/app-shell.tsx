@@ -188,7 +188,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 w-full border-b border-primary/10 bg-gradient-to-r from-gray-50 via-purple-50/60 to-background shadow-sm backdrop-blur-lg">
+        <header className="sticky top-0 z-30 w-full border-b border-primary/10 bg-gradient-to-br from-primary/5 via-secondary/3 to-background shadow-sm backdrop-blur-lg">
           <div className="grid h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 px-4 sm:px-6 lg:px-8">
               <div className="flex items-center shrink-0">
                 <img
@@ -256,7 +256,7 @@ export function AppShell({ children }: AppShellProps) {
         </header>
 
         <div className="flex min-h-0 flex-1">
-          <aside className="hidden w-[17rem] shrink-0 border-r border-primary/10 bg-gradient-to-b from-gray-50 via-purple-50/50 to-gray-50 px-4 py-5 lg:flex lg:flex-col">
+          <aside className="hidden w-[17rem] shrink-0 border-r border-primary/10 bg-gradient-to-b from-primary/4 via-secondary/2 to-primary/3 px-4 py-5 lg:flex lg:flex-col">
             <NavigationContent />
           </aside>
 
@@ -265,7 +265,7 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </div>
 
-        <footer className="w-full border-t border-primary/10 bg-gradient-to-b from-gray-50 via-purple-50/50 to-gray-50 px-4 py-9 sm:px-6 lg:px-8">
+        <footer className="w-full border-t border-primary/10 bg-gradient-to-b from-primary/4 via-secondary/2 to-primary/3 px-4 py-9 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
             <div className="flex flex-wrap items-center gap-3">
               <a href="#" className="transition-colors hover:text-primary">
@@ -290,7 +290,7 @@ export function AppShell({ children }: AppShellProps) {
             onClick={() => setIsMobileNavOpen(false)}
             aria-label={t("navigation.closeMenu")}
           />
-          <aside className="absolute left-0 top-0 h-full w-[82%] max-w-xs border-r border-primary/10 bg-gradient-to-b from-gray-50 via-purple-50/50 to-gray-50 p-4 shadow-xl">
+          <aside className="absolute left-0 top-0 h-full w-[82%] max-w-xs border-r border-primary/10 bg-gradient-to-b from-primary/4 via-secondary/2 to-primary/3 p-4 shadow-xl">
             <div className="mb-5 flex items-center justify-between border-b border-border/30 pb-3">
               <Button
                 size="sm"
