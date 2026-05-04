@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth-provider";
 import { useFamily } from "@/providers/family-provider";
-import { FinancialDashboardSearchBar } from "@/components/shared/layout/financial-dashboard-search-bar";
 
 type AppShellProps = {
   children: ReactNode;
@@ -260,9 +259,6 @@ export function AppShell({ children }: AppShellProps) {
                 ) : null}
               </div>
           </div>
-          <Suspense fallback={null}>
-            <FinancialDashboardSearchBar />
-          </Suspense>
         </header>
 
         <div className="flex min-h-0 flex-1">

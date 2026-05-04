@@ -46,8 +46,8 @@ export function FinancialFilterBar({
   ];
 
   return (
-    <div className="flex flex-col gap-5 rounded-lg border border-border/40 bg-muted/20 p-5 shadow-sm sm:p-6 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between lg:gap-6">
-      <fieldset className="min-w-0 space-y-2">
+    <div className="space-y-5 rounded-lg border border-border/40 bg-muted/20 p-5 shadow-sm sm:p-6">
+      <fieldset className="space-y-2">
         <legend className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("financeDashboard.filters.scope")}
         </legend>
@@ -71,8 +71,8 @@ export function FinancialFilterBar({
         </div>
       </fieldset>
 
-      <div className="grid w-full gap-4 sm:grid-cols-2 lg:flex lg:w-auto lg:min-w-0 lg:flex-1 lg:items-end lg:justify-end lg:gap-4">
-        <div className="space-y-2 sm:min-w-[200px]">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-2">
           <label
             className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
             htmlFor="financial-filter-account"
@@ -93,7 +93,7 @@ export function FinancialFilterBar({
             ))}
           </select>
         </div>
-        <div className="space-y-2 sm:min-w-[200px]">
+        <div className="space-y-2">
           <label
             className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
             htmlFor="financial-filter-month"
@@ -110,7 +110,7 @@ export function FinancialFilterBar({
         </div>
       </div>
 
-      <fieldset className="w-full min-w-0 space-y-2 lg:max-w-2xl">
+      <fieldset className="space-y-2">
         <legend className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("financeDashboard.filters.status")}
         </legend>
