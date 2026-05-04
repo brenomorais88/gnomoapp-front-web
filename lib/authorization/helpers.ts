@@ -16,12 +16,25 @@ export function isFamilyAdmin(role?: FamilyMemberRole | null) {
 export function getCurrentUserFamilyRole(
   members: FamilyMemberDto[] | undefined,
   userId: string | undefined,
+  userEmail?: string | undefined,
 ) {
-  if (!members || !userId) {
+  if (!members || members.length === 0) {
     return undefined;
   }
 
-  const currentMember = members.find((member) => member.id === userId);
+  const normalizedEmail = userEmail?.trim().toLowerCase();
+  const currentMember = members.find((member) => {
+    if (userId && member.id === userId) {
+      return true;
+    }
+
+    if (normalizedEmail && member.email?.trim().toLowerCase() === normalizedEmail) {
+      return true;
+    }
+
+    return false;
+  });
+
   return currentMember?.role;
 }
 

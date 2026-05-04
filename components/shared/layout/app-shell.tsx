@@ -2,15 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
-import { appNavigationItems, getRouteLabelKey } from "@/lib/navigation";
+import { ChevronDown, Menu } from "lucide-react";
+import {
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { appNavigationMenuItems, financeNavigationItems, getRouteLabelKey } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/shared/data/status-badge";
 import { t } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth-provider";
-import { useViewScope } from "@/hooks/view/use-view-scope";
+import { useFamily } from "@/providers/family-provider";
+import { FinancialDashboardSearchBar } from "@/components/shared/layout/financial-dashboard-search-bar";
 
 type AppShellProps = {
   children: ReactNode;
@@ -18,15 +25,80 @@ type AppShellProps = {
 
 function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const isFinanceActive = financeNavigationItems.some((item) =>
+    pathname === item.href || pathname.startsWith(`${item.href}/`),
+  );
+  const [isFinanceOpen, setIsFinanceOpen] = useState(isFinanceActive);
+
+  useEffect(() => {
+    if (isFinanceActive) {
+      setIsFinanceOpen(true);
+    }
+  }, [isFinanceActive]);
 
   return (
-    <nav className="space-y-1">
-      {appNavigationItems.map((item) => {
+    <nav className="space-y-0.5">
+      {appNavigationMenuItems.map((item) => {
+        const Icon = item.icon;
+        if ("children" in item) {
+          return (
+            <div key={item.labelKey}>
+              <button
+                type="button"
+                onClick={() => setIsFinanceOpen((current) => !current)}
+                className={cn(
+                  "ds-focus-ring flex w-full items-center gap-2.5 rounded-r-lg border-l-4 py-2 pl-2.5 pr-3 text-sm font-medium transition-colors",
+                  isFinanceActive
+                    ? "border-primary bg-primary/10 text-primary shadow-sm"
+                    : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+                aria-expanded={isFinanceOpen}
+              >
+                <Icon className="size-4 shrink-0" aria-hidden="true" />
+                <span className="flex-1 text-left">{t(item.labelKey)}</span>
+                <ChevronDown
+                  className={cn(
+                    "size-4 transition-transform",
+                    isFinanceOpen ? "rotate-180" : "rotate-0",
+                  )}
+                  aria-hidden="true"
+                />
+              </button>
+              {isFinanceOpen ? (
+                <div className="mt-1 space-y-1 pl-6">
+                  {item.children.map((subItem) => {
+                    const isSubItemActive =
+                      pathname === subItem.href || pathname.startsWith(`${subItem.href}/`);
+                    return (
+                      <Link
+                        key={subItem.href}
+                        href={subItem.href}
+                        onClick={onNavigate}
+                        className={cn(
+                          "ds-focus-ring flex items-center gap-3 rounded-r-lg border-l-4 py-2 pl-2.5 pr-3 text-sm font-medium transition-colors",
+                          isSubItemActive
+                            ? "border-primary bg-primary/10 text-primary shadow-sm"
+                            : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                        )}
+                      >
+                        <subItem.icon
+                          className={cn("size-4", isSubItemActive && "size-[1.15rem]")}
+                          aria-hidden="true"
+                        />
+                        <span>{t(subItem.labelKey)}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          );
+        }
+
         const isActive =
           item.href === "/"
             ? pathname === "/"
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
-        const Icon = item.icon;
 
         return (
           <Link
@@ -34,13 +106,16 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "ds-focus-ring flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+              "ds-focus-ring flex items-center gap-2.5 rounded-r-lg border-l-4 py-2 pl-2.5 pr-3 text-sm font-medium transition-colors",
               isActive
-                ? "bg-primary/12 text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "border-primary bg-primary/10 text-primary shadow-sm"
+                : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
-            <Icon className="size-4" aria-hidden="true" />
+            <Icon
+              className={cn("size-4 shrink-0", isActive && "size-[1.15rem]")}
+              aria-hidden="true"
+            />
             <span>{t(item.labelKey)}</span>
           </Link>
         );
@@ -51,31 +126,72 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppShell({ children }: AppShellProps) {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { session, logout } = useAuth();
-  const { label: scopeLabel } = useViewScope();
+  const auth = useAuth();
+  const family = useFamily();
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
 
   const routeTitle = useMemo(() => getRouteLabelKey(pathname), [pathname]);
+  const userDisplayName = auth.session?.user.name || auth.session?.user.email || "";
+  const userInitials = useMemo(() => {
+    const source = userDisplayName.trim();
+    if (!source) {
+      return "U";
+    }
+
+    const parts = source.split(" ").filter(Boolean);
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+  }, [userDisplayName]);
+
+  const familyOptions = useMemo(() => {
+    const sessionFamilies = auth.session?.families ?? [];
+    if (sessionFamilies.length > 0) {
+      return sessionFamilies;
+    }
+
+    if (family.family) {
+      return [family.family];
+    }
+
+    return [];
+  }, [auth.session?.families, family.family]);
+
+  const activeFamilyId =
+    auth.session?.activeFamilyId ??
+    family.family?.id ??
+    familyOptions[0]?.id ??
+    "";
+
+  useEffect(() => {
+    if (!isUserMenuOpen) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!userMenuRef.current) {
+        return;
+      }
+
+      if (!userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("mousedown", handleClickOutside);
+    return () => window.removeEventListener("mousedown", handleClickOutside);
+  }, [isUserMenuOpen]);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1680px]">
-        <aside className="hidden w-72 shrink-0 border-r border-border/70 bg-surface/80 p-5 lg:flex lg:flex-col">
-          <div className="mb-6 border-b border-border/70 pb-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              {t("common.appName")}
-            </p>
-            <h2 className="mt-1 text-lg font-semibold text-foreground">
-              {t("common.billManagement")}
-            </h2>
-          </div>
-          <NavigationContent />
-        </aside>
-
-        <div className="flex min-h-screen flex-1 flex-col">
-          <header className="sticky top-0 z-20 border-b border-border/70 bg-background/95 backdrop-blur">
-            <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center gap-3">
+      <div className="flex min-h-screen flex-col">
+        <header className="sticky top-0 z-30 w-full border-b border-border/70 bg-background/95 backdrop-blur">
+          <div className="grid h-16 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4 sm:px-6 lg:px-8">
+              <div className="flex h-full items-center gap-3">
                 <Button
                   variant="outline"
                   size="icon"
@@ -89,25 +205,104 @@ export function AppShell({ children }: AppShellProps) {
                   <p className="text-sm font-semibold text-foreground">
                     {t(routeTitle)}
                   </p>
-                  <div className="mt-0.5 flex items-center gap-2">
-                    <p className="text-xs text-muted-foreground">{t("common.workflowSubtitle")}</p>
-                    <StatusBadge label={scopeLabel} tone="info" />
-                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t("common.workflowSubtitle")}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <p className="hidden text-sm text-muted-foreground sm:block">
-                  {session?.user.name || session?.user.email}
-                </p>
-                <Button size="sm" variant="outline" onClick={logout}>
-                  {t("auth.actions.logout")}
-                </Button>
-              </div>
-            </div>
-          </header>
 
-          <div className="flex-1">{children}</div>
+              <div className="hidden h-full min-w-[220px] max-w-[380px] items-center justify-center justify-self-center sm:flex">
+                {familyOptions.length > 1 ? (
+                  <select
+                    value={activeFamilyId}
+                    onChange={(event) => auth.setActiveFamilyId(event.target.value)}
+                    className="ds-focus-ring h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                    aria-label={t("navigation.currentFamily")}
+                  >
+                    {familyOptions.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="rounded-xl border border-primary/15 bg-primary/5 px-4 py-2 text-center text-sm font-semibold text-foreground shadow-sm">
+                    {family.family?.name ?? t("navigation.noFamilySelected")}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex h-full items-center justify-end" ref={userMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsUserMenuOpen((current) => !current)}
+                  className="ds-focus-ring flex size-10 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-foreground hover:bg-muted/80"
+                  aria-label={t("navigation.userMenu")}
+                  aria-expanded={isUserMenuOpen}
+                  aria-haspopup="menu"
+                >
+                  {userInitials}
+                </button>
+                {isUserMenuOpen ? (
+                  <div className="absolute right-4 top-14 z-50 w-44 rounded-lg border border-border bg-card p-1.5 shadow-lg sm:right-6 lg:right-8">
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="ds-focus-ring block rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted"
+                    >
+                      {t("navigation.myProfile")}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        auth.logout();
+                      }}
+                      className="ds-focus-ring mt-1 block w-full rounded-md px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
+                    >
+                      {t("auth.actions.logout")}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+          </div>
+          <Suspense fallback={null}>
+            <FinancialDashboardSearchBar />
+          </Suspense>
+        </header>
+
+        <div className="flex min-h-0 flex-1">
+          <aside className="hidden w-[17rem] shrink-0 border-r border-border/70 bg-surface/80 px-4 py-5 lg:flex lg:flex-col">
+            <div className="mb-5 border-b border-border/70 pb-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                {t("common.appName")}
+              </p>
+              <h2 className="mt-1 text-lg font-semibold text-foreground">
+                {t("common.billManagement")}
+              </h2>
+            </div>
+            <NavigationContent />
+          </aside>
+
+          <div className="min-w-0 flex-1 overflow-y-auto">
+            <div className="min-h-full">{children}</div>
+          </div>
         </div>
+
+        <footer className="w-full border-t border-border/70 bg-background/95 px-4 py-9 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-3">
+              <a href="#" className="hover:text-foreground">
+                {t("navigation.footer.contact")}
+              </a>
+              <a href="#" className="hover:text-foreground">
+                {t("navigation.footer.terms")}
+              </a>
+              <a href="#" className="hover:text-foreground">
+                {t("navigation.footer.privacy")}
+              </a>
+            </div>
+            <span>{t("navigation.footer.cnpj")}</span>
+          </div>
+        </footer>
       </div>
 
       {isMobileNavOpen ? (

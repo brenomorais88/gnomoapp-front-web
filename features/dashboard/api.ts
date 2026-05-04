@@ -3,8 +3,18 @@ import {
   DashboardCategorySummaryDto,
   DashboardDayDto,
   DashboardHomeDto,
+  FinancialDashboardData,
+  FinancialDashboardFilters,
+  FinancialDashboardOccurrenceViewModel,
   DashboardNext12MonthsDto,
 } from "@/features/dashboard/types";
+import {
+  buildMonthRange,
+  resolveUserTimezone,
+  toFinancialDashboardOccurrenceViewModel,
+  toStatusFilterSet,
+} from "@/features/dashboard/parsers";
+import { listOccurrences } from "@/features/occurrences/api";
 import { isRecord, parseCollection, parseEntity } from "@/lib/api/parsers";
 
 const DASHBOARD_ENDPOINT = "/dashboard";
@@ -78,4 +88,93 @@ export async function getDashboardCategorySummary(month: string) {
     month,
     items: [],
   } as DashboardCategorySummaryDto;
+}
+
+export async function getFinancialDashboardData(
+  filters: FinancialDashboardFilters,
+): Promise<FinancialDashboardData> {
+  const timezone = filters.timezone || resolveUserTimezone();
+  const monthRange = buildMonthRange(filters.month);
+  const statusFilters = filters.statuses ?? [];
+  const statusSet = toStatusFilterSet(statusFilters);
+  const hasSingleStatus = statusFilters.length === 1 ? statusFilters[0] : undefined;
+  const apiStatus =
+    hasSingleStatus === "pending" || hasSingleStatus === "paid" ? hasSingleStatus : undefined;
+
+  if (!monthRange.from || !monthRange.to) {
+    return {
+      timezone,
+      filters: {
+        scope: filters.scope,
+        accountId: filters.accountId,
+        statuses: statusFilters,
+        month: filters.month,
+        from: monthRange.from,
+        to: monthRange.to,
+      },
+      source: {
+        backendApplied: [],
+        frontendApplied: ["invalid-month"],
+      },
+      occurrences: [],
+    };
+  }
+
+  const rawOccurrences = await listOccurrences({
+    startDate: monthRange.from,
+    endDate: monthRange.to,
+    month: filters.month,
+    scope: filters.scope,
+    ...(apiStatus ? { status: apiStatus } : {}),
+  });
+
+  const mappedOccurrences = rawOccurrences
+    .map(toFinancialDashboardOccurrenceViewModel)
+    .filter((item): item is FinancialDashboardOccurrenceViewModel => Boolean(item));
+
+  const occurrences = mappedOccurrences.filter((item) => {
+    if (filters.accountId && item.accountId !== filters.accountId) {
+      return false;
+    }
+
+    if (monthRange.from && monthRange.to) {
+      // Keep frontend filtering as a safety net in case backend ignores date boundaries.
+      if (item.dueDateKey < monthRange.from || item.dueDateKey > monthRange.to) {
+        return false;
+      }
+    }
+
+    if (statusSet && !statusSet.has(item.status)) {
+      return false;
+    }
+
+    return true;
+  });
+
+  return {
+    timezone,
+    filters: {
+      scope: filters.scope,
+      accountId: filters.accountId,
+      statuses: statusFilters,
+      month: filters.month,
+      from: monthRange.from,
+      to: monthRange.to,
+    },
+    source: {
+      backendApplied: [
+        "startDate",
+        "endDate",
+        "month",
+        "scope",
+        ...(apiStatus ? ["status"] : []),
+      ],
+      frontendApplied: [
+        ...(filters.accountId ? ["accountId"] : []),
+        ...(!apiStatus && statusFilters.length > 0 ? ["status(client)"] : []),
+        ...(monthRange.from && monthRange.to ? ["month-range-safety-filter"] : []),
+      ],
+    },
+    occurrences,
+  };
 }

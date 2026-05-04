@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createFamily,
   createPendingFamilyMember,
+  getCurrentUserFamilyPermissions,
   getMemberPermissions,
   getMyFamily,
   getMyFamilyMembers,
@@ -94,24 +95,75 @@ describe("families api", () => {
     expect(result).toEqual([
       {
         id: "m1",
+        familyMemberId: "m1",
+        userId: undefined,
         name: "Ana Silva",
         email: "ana@email.com",
+        phone: undefined,
         role: "ADMIN",
         status: "PENDING_REGISTRATION",
       },
       {
         id: "m2",
+        familyMemberId: "m2",
+        userId: undefined,
         name: "Bruno",
         email: undefined,
+        phone: undefined,
         role: "MEMBER",
         status: "ACTIVE",
       },
       {
         id: "m3",
+        familyMemberId: "m3",
+        userId: undefined,
         name: "Carla",
         email: undefined,
+        phone: undefined,
         role: "MEMBER",
         status: "REMOVED",
+      },
+    ]);
+  });
+
+  it("maps pending members with nullable user fields", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            data: [
+              {
+                id: "m-pending-1",
+                userId: null,
+                name: "Dependente",
+                role: "MEMBER",
+                status: "PENDING_REGISTRATION",
+                email: null,
+                phone: null,
+              },
+            ],
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+      ),
+    );
+
+    const result = await getMyFamilyMembers();
+
+    expect(result).toEqual([
+      {
+        id: "m-pending-1",
+        familyMemberId: "m-pending-1",
+        userId: undefined,
+        name: "Dependente",
+        email: undefined,
+        phone: undefined,
+        role: "MEMBER",
+        status: "PENDING_REGISTRATION",
       },
     ]);
   });
@@ -143,8 +195,11 @@ describe("families api", () => {
 
     expect(result).toEqual({
       id: "m4",
+      familyMemberId: "m4",
+      userId: undefined,
       name: "Convidado",
       email: "convidado@email.com",
+      phone: undefined,
       role: "MEMBER",
       status: "PENDING_REGISTRATION",
     });
@@ -224,6 +279,37 @@ describe("families api", () => {
     const result = await getMemberPermissions("m7");
     expect(result.canViewFamilyAccounts).toBe(true);
     expect(result.canEditOtherPersonalAccounts).toBe(false);
+  });
+
+  it("loads current user family permissions from dedicated endpoint", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            canViewFamilyAccounts: true,
+            canCreateFamilyAccounts: false,
+            canEditFamilyAccounts: true,
+            canDeleteFamilyAccounts: false,
+            canMarkFamilyAccountsPaid: true,
+            canManageCategories: false,
+            canInviteMembers: true,
+            canManageMembers: false,
+            canViewOtherPersonalAccounts: false,
+            canEditOtherPersonalAccounts: false,
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+      ),
+    );
+
+    const result = await getCurrentUserFamilyPermissions();
+
+    expect(result.canEditFamilyAccounts).toBe(true);
+    expect(result.canManageMembers).toBe(false);
   });
 
   it("updates member permissions using PUT endpoint", async () => {

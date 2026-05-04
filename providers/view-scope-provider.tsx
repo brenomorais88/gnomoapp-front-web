@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from "react";
 import {
   DEFAULT_VIEW_SCOPE,
   loadStoredViewScope,
@@ -20,15 +20,12 @@ type ViewScopeProviderProps = {
 };
 
 export function ViewScopeProvider({ children }: ViewScopeProviderProps) {
-  const [scope, setScopeState] = useState<ViewScope>(DEFAULT_VIEW_SCOPE);
-
-  useEffect(() => {
+  const [scope, setScopeState] = useState<ViewScope>(() => {
     if (typeof window === "undefined") {
-      return;
+      return DEFAULT_VIEW_SCOPE;
     }
-
-    setScopeState(loadStoredViewScope(window.localStorage));
-  }, []);
+    return loadStoredViewScope(window.localStorage);
+  });
 
   const setScope = useCallback((nextScope: ViewScope) => {
     setScopeState(nextScope);

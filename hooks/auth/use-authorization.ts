@@ -19,17 +19,22 @@ export function useAuthorization() {
   const membersQuery = useMyFamilyMembersQuery(auth.isAuthenticated && family.hasFamily);
 
   const currentRole = useMemo(
-    () => getCurrentUserFamilyRole(membersQuery.data, auth.session?.user.id),
-    [auth.session?.user.id, membersQuery.data],
+    () =>
+      getCurrentUserFamilyRole(
+        membersQuery.data,
+        auth.session?.user.id,
+        auth.session?.user.email,
+      ),
+    [auth.session?.user.email, auth.session?.user.id, membersQuery.data],
   );
 
   const isAdmin = isFamilyAdmin(currentRole);
-  const grantedPermissions = auth.session?.permissions ?? auth.session?.user.permissions ?? [];
-
   const can = useCallback(
-    (action: AuthorizationAction) =>
-      canExecuteAction(action, grantedPermissions, { isFamilyAdmin: isAdmin }),
-    [grantedPermissions, isAdmin],
+    (action: AuthorizationAction) => {
+      const grantedPermissions = auth.session?.permissions ?? auth.session?.user.permissions ?? [];
+      return canExecuteAction(action, grantedPermissions, { isFamilyAdmin: isAdmin });
+    },
+    [auth.session, isAdmin],
   );
 
   return {

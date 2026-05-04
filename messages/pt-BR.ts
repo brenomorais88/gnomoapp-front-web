@@ -1,6 +1,6 @@
 export const ptBRMessages = {
   common: {
-    appName: "Daily Web",
+    appName: "Gnomo",
     billManagement: "Gestão de contas",
     workflowSubtitle: "Fluxo limpo e focado",
     unknown: "Desconhecido",
@@ -8,7 +8,9 @@ export const ptBRMessages = {
   },
   navigation: {
     dashboard: "Início",
+    financeDashboard: "Dashboard",
     family: "Família",
+    finance: "Financeiro",
     categories: "Categorias",
     accounts: "Contas",
     occurrences: "Ocorrências",
@@ -16,6 +18,17 @@ export const ptBRMessages = {
     menu: "Menu",
     openMenu: "Abrir menu de navegação",
     closeMenu: "Fechar menu de navegação",
+    currentFamily: "Família atual",
+    noFamilySelected: "Sem família selecionada",
+    userMenu: "Menu do usuário",
+    myProfile: "Meu perfil",
+    profile: "Perfil",
+    footer: {
+      contact: "Contato",
+      terms: "Termos de uso",
+      privacy: "Privacidade",
+      cnpj: "CNPJ: 00.000.000/0001-00",
+    },
   },
   actions: {
     calendar: "Calendário",
@@ -44,6 +57,11 @@ export const ptBRMessages = {
     family: "Contas da família",
     currentContextTitle: "Contexto de visualização",
     currentContextDescription: "Você está visualizando: {context}",
+    short: {
+      VISIBLE_TO_ME: "Visível",
+      PERSONAL: "Meu",
+      FAMILY: "Família",
+    },
   },
   auth: {
     actions: {
@@ -149,6 +167,99 @@ export const ptBRMessages = {
     loadingDashboard: "Carregando dados do painel...",
     overdueHint: "Requer atenção imediata",
     next7DaysHint: "Com base na janela de vencimento",
+  },
+  financeDashboard: {
+    title: "Dashboard financeiro",
+    description:
+      "Visão inicial do módulo financeiro com estrutura base para indicadores e acompanhamentos.",
+    loadErrorTitle: "Não foi possível carregar o dashboard financeiro",
+    loadingInitial: "Carregando dashboard financeiro...",
+    revalidating: "Atualizando dados do dashboard...",
+    emptyMonthTitle: "Sem dados para o mês selecionado",
+    emptyMonthDescription:
+      "Ainda não existem ocorrências para este mês com os filtros atuais.",
+    filters: {
+      scope: "Escopo",
+      account: "Conta",
+      allAccounts: "Todas",
+      status: "Status",
+      month: "Mês",
+    },
+    searchPlaceholder: "Buscar contas...",
+    statusQuick: {
+      all: "Todos",
+      pending: "Pendentes",
+      paid: "Pagos",
+      overdue: "Atrasados",
+    },
+    mode: {
+      overview: "Visão geral",
+      payMode: "Modo pagar contas",
+    },
+    actionCards: {
+      overdueTitle: "Contas atrasadas",
+      overdueAction: "Resolver agora",
+      pendingTitle: "Pendentes do mês",
+      pendingAction: "Ver pendentes",
+      paidTitle: "Total pago",
+      paidAction: "Ver histórico",
+      upcomingTitle: "Próximos vencimentos",
+      upcomingSubtitle: "Até 7 dias",
+      upcomingAction: "Planejar semana",
+    },
+    distribution: {
+      topCategories: "Top categorias",
+    },
+    overdueCountSummary: "{count} contas",
+    upcomingCountSummary: "{count} no período",
+    calendar: {
+      title: "Calendário financeiro",
+      description: "Use a visão mensal ou semanal para selecionar o dia da lista.",
+      monthView: "Mensal",
+      weekView: "Semanal",
+      previousPeriod: "Período anterior",
+      nextPeriod: "Próximo período",
+      today: "Hoje",
+    },
+    cards: {
+      overdue: "Contas em atraso",
+      overdueAmount: "Valor em atraso: {amount}",
+      monthTotal: "Total do mês",
+      monthTotalHint: "Soma de contas PENDENTES + PAGAS do mês",
+      forecast: "Previsão do mês",
+      forecastHint: "Valor fixo no MVP",
+      monthlyRule: "Regra mensal",
+      selectedFiltersInfo: "Cards fixos",
+      statusIndependenceHint: "Os cards não são afetados pelo filtro livre de status.",
+    },
+    dailyList: {
+      title: "Lista diária",
+      description: "Ocorrências de {date}, refletindo os filtros de status.",
+      meta: "Conta: {account} | Categoria: {category}",
+      markAsPaid: "Marcar como paga",
+      unmarkPaid: "Desmarcar pagamento",
+      updatingStatus: "Atualizando...",
+      updateStatusError: "Não foi possível atualizar o status da ocorrência.",
+    },
+    pie: {
+      title: "Distribuição por categoria",
+      description: "Gráfico de pizza com base nas ocorrências filtradas por status.",
+      fallbackCategory: "Sem categoria definida",
+    },
+    monthOccurrencesList: {
+      title: "Ocorrências do mês",
+      description:
+        "Todas as ocorrências do período filtrado, ordenadas por data de pagamento; sem pagamento, usa a data de vencimento.",
+      paymentDate: "Pagamento",
+      dueDate: "Vencimento",
+      noPaymentYet: "Em aberto",
+      emptyTitle: "Sem ocorrências no mês",
+      emptyDescription: "Não há itens para exibir com os filtros atuais.",
+    },
+    noDailyData: "Sem ocorrências para os filtros atuais",
+    noDailyDataDescription: "Ajuste os filtros para visualizar itens na lista diária.",
+    noPieData: "Sem dados para o gráfico",
+    noPieDataDescription: "Nenhuma ocorrência encontrada para composição da pizza.",
   },
   categories: {
     title: "Categorias",
@@ -415,12 +526,21 @@ export const ptBRMessages = {
       },
     },
   },
+  profile: {
+    description: "Dados básicos da conta autenticada.",
+    accountTitle: "Minha conta",
+    accountDescription: "Informações de identificação do usuário logado.",
+    name: "Nome",
+    email: "E-mail",
+  },
   family: {
     title: "Gestão da família",
     description:
       "Visualize os membros atuais da família, com papel e status de participação.",
     loadErrorTitle: "Não foi possível carregar dados da família",
     membersTitle: "Membros da família",
+    cardsDescription:
+      "Toque em um membro para abrir os detalhes. Use poucos cliques para criar e gerenciar.",
     membersDescription:
       "Base para futuras ações de convite, troca de papel e gestão de permissões.",
     noMembers: "Nenhum membro encontrado",
@@ -438,12 +558,28 @@ export const ptBRMessages = {
     table: {
       name: "Nome",
       email: "E-mail",
+      phone: "Celular",
       role: "Papel",
       status: "Status",
       actions: "Ações",
     },
+    modal: {
+      createTitle: "Adicionar novo membro",
+      createDescription: "Convide um novo membro para participar da família.",
+      editTitle: "Gerenciar {name}",
+      editDescription: "Edite papel e permissões do membro selecionado.",
+      readTitle: "Detalhes do membro",
+      readDescription: "Visualização em modo leitura.",
+      fields: {
+        firstName: "Nome",
+        lastName: "Sobrenome",
+      },
+      actions: {
+        saveRole: "Salvar papel",
+      },
+    },
     memberForm: {
-      openAction: "Adicionar membro",
+      openAction: "Novo membro",
       title: "Adicionar membro pendente",
       description: "Convide um novo membro para a família atual.",
       pendingHint:
@@ -469,11 +605,15 @@ export const ptBRMessages = {
     },
     memberActions: {
       manage: "Gerenciar",
+      view: "Visualizar",
       promote: "Promover para ADMIN",
       demote: "Rebaixar para MEMBER",
       remove: "Remover",
       panelDescription:
         "Revise papel, status e permissões do membro selecionado antes de aplicar alterações.",
+      readOnlyHint: "Este membro está aberto em modo leitura.",
+      adminOnlyHint:
+        "Somente administradores podem alterar papel, permissões e remoção de membros.",
       roleChangeConfirm:
         "Deseja alterar o papel de \"{name}\" para \"{role}\"? Esta mudança afeta as permissões imediatamente.",
       removeConfirm:
@@ -498,6 +638,8 @@ export const ptBRMessages = {
       submit: "Salvar permissões",
       submitting: "Salvando permissões...",
       success: "Permissões atualizadas com sucesso.",
+      dynamicFallbackDescription:
+        "Permissão detectada automaticamente a partir do backend.",
       fields: {
         canViewFamilyAccounts: {
           label: "Ver contas da família",
@@ -540,6 +682,12 @@ export const ptBRMessages = {
           description: "Permite editar dados pessoais de outros membros quando compartilhados.",
         },
       },
+    },
+    permissionsCache: {
+      loading: "Atualizando permissões da família...",
+      error:
+        "Não foi possível atualizar permissões agora. O acesso permanecerá em modo seguro até a próxima atualização.",
+      readOnly: "Você está em modo leitura para gestão de membros nesta família.",
     },
   },
 } as const;

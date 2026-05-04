@@ -71,10 +71,19 @@ function mapFamilyMember(payload: unknown): FamilyMemberDto {
   const lastName = payload.lastName ? String(payload.lastName) : "";
   const joinedName = [firstName, lastName].filter(Boolean).join(" ").trim();
 
+  const familyMemberId = String(payload.familyMemberId ?? payload.id ?? payload.memberId ?? "");
+  const userId =
+    payload.userId !== undefined && payload.userId !== null
+      ? String(payload.userId)
+      : undefined;
+
   return {
-    id: String(payload.id ?? payload.userId ?? ""),
+    id: familyMemberId,
+    familyMemberId: familyMemberId || undefined,
+    userId,
     name: String(payload.name ?? payload.fullName ?? joinedName),
     email: payload.email ? String(payload.email) : undefined,
+    phone: payload.phone ? String(payload.phone) : payload.mobilePhone ? String(payload.mobilePhone) : undefined,
     role: normalizeRole(payload.role),
     status: normalizeStatus(payload.status),
   };
@@ -134,8 +143,15 @@ const memberPermissionKeys: Array<keyof MemberPermissionsDto> = [
 function mapMemberPermissions(payload: unknown): MemberPermissionsDto {
   const source = parseEntity<unknown>(payload);
   const record = isRecord(source) ? source : {};
+  const dynamicPermissions: MemberPermissionsDto = {} as MemberPermissionsDto;
 
-  return memberPermissionKeys.reduce<MemberPermissionsDto>((acc, key) => {
+  for (const [key, value] of Object.entries(record)) {
+    if (typeof value === "boolean") {
+      dynamicPermissions[key] = value;
+    }
+  }
+
+  const normalizedKnownPermissions = memberPermissionKeys.reduce<MemberPermissionsDto>((acc, key) => {
     acc[key] = Boolean(record[key]);
     return acc;
   }, {
@@ -150,12 +166,22 @@ function mapMemberPermissions(payload: unknown): MemberPermissionsDto {
     canViewOtherPersonalAccounts: false,
     canEditOtherPersonalAccounts: false,
   });
+
+  return {
+    ...dynamicPermissions,
+    ...normalizedKnownPermissions,
+  };
 }
 
 export async function getMemberPermissions(memberId: string) {
   const response = await apiRequest<unknown>(
     `${FAMILIES_ENDPOINT}/current/members/${memberId}/permissions`,
   );
+  return mapMemberPermissions(response);
+}
+
+export async function getCurrentUserFamilyPermissions() {
+  const response = await apiRequest<unknown>(`${FAMILIES_ENDPOINT}/current/me/permissions`);
   return mapMemberPermissions(response);
 }
 

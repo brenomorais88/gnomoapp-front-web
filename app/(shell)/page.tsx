@@ -77,7 +77,7 @@ function getOccurrenceTone(status?: string) {
   }
 
   if (normalizedStatus === "pending") {
-    return "warning" as const;
+    return "info" as const;
   }
 
   return "neutral" as const;

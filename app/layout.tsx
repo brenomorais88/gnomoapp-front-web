@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Daily Web",
-  description: "Bill management SaaS frontend foundation",
+  title: "Gnomo",
+  description: "Bill and occurrence management — Gnomo web app",
 };
 
 export default function RootLayout({
