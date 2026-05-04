@@ -189,8 +189,8 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 w-full border-b border-border/30 bg-background/98 backdrop-blur-xl">
-          <div className="grid h-16 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4 sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-30 w-full border-b border-primary/10 bg-gradient-to-br from-background via-background/98 to-background bg-background/95 shadow-sm backdrop-blur-lg">
+          <div className="grid h-20 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 px-4 sm:px-6 lg:px-8">
               <div className="flex h-full items-center gap-3">
                 <Button
                   variant="outline"
@@ -201,11 +201,11 @@ export function AppShell({ children }: AppShellProps) {
                 >
                   <Menu className="size-4" />
                 </Button>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">
+                <div className="space-y-0.5">
+                  <p className="text-base font-bold text-foreground leading-none">
                     {t(routeTitle)}
                   </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{t("common.workflowSubtitle")}</p>
+                  <p className="text-xs font-medium text-muted-foreground/80">{t("common.workflowSubtitle")}</p>
                 </div>
               </div>
 
@@ -214,7 +214,7 @@ export function AppShell({ children }: AppShellProps) {
                   <select
                     value={activeFamilyId}
                     onChange={(event) => auth.setActiveFamilyId(event.target.value)}
-                    className="ds-focus-ring h-9 w-full rounded-lg border border-border/40 bg-background px-3 text-sm text-foreground transition-colors hover:border-border/60"
+                    className="ds-focus-ring h-10 w-full rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5 px-3 text-sm font-medium text-foreground transition-all hover:border-primary/40 hover:shadow-md shadow-sm"
                     aria-label={t("navigation.currentFamily")}
                   >
                     {familyOptions.map((item) => (
@@ -224,17 +224,24 @@ export function AppShell({ children }: AppShellProps) {
                     ))}
                   </select>
                 ) : (
-                  <div className="rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5 px-4 py-2 text-center text-sm font-semibold text-foreground shadow-sm">
+                  <div className="rounded-lg border border-primary/25 bg-gradient-to-r from-primary/10 to-secondary/8 px-5 py-2.5 text-center text-sm font-bold text-foreground shadow-sm">
                     {family.family?.name ?? t("navigation.noFamilySelected")}
                   </div>
                 )}
               </div>
 
-              <div className="flex h-full items-center justify-end" ref={userMenuRef}>
+              <div className="flex h-full items-center justify-end gap-4" ref={userMenuRef}>
+                <img
+                  src="/gnomo_logo_assets/svg/horizontal-full-purple.svg"
+                  alt="Gnomo Logo"
+                  className="hidden h-8 w-auto lg:block"
+                  aria-hidden="true"
+                />
+                <div className="hidden lg:block w-px h-8 bg-primary/10" aria-hidden="true" />
                 <button
                   type="button"
                   onClick={() => setIsUserMenuOpen((current) => !current)}
-                  className="ds-focus-ring flex size-10 items-center justify-center rounded-full border border-border/40 bg-gradient-to-br from-primary/10 to-secondary/10 text-sm font-semibold text-foreground transition-all hover:border-primary/60 hover:shadow-md"
+                  className="ds-focus-ring flex size-11 items-center justify-center rounded-full border border-primary/20 bg-gradient-to-br from-primary/15 to-secondary/12 text-sm font-bold text-foreground transition-all hover:from-primary/25 hover:to-secondary/20 hover:shadow-md shadow-sm"
                   aria-label={t("navigation.userMenu")}
                   aria-expanded={isUserMenuOpen}
                   aria-haspopup="menu"
@@ -242,7 +249,7 @@ export function AppShell({ children }: AppShellProps) {
                   {userInitials}
                 </button>
                 {isUserMenuOpen ? (
-                  <div className="absolute right-4 top-14 z-50 w-44 rounded-lg border border-border/40 bg-card p-1.5 shadow-lg sm:right-6 lg:right-8">
+                  <div className="absolute right-4 top-24 z-50 w-44 rounded-lg border border-border/40 bg-card p-1.5 shadow-lg sm:right-6 lg:right-8">
                     <Link
                       href="/profile"
                       onClick={() => setIsUserMenuOpen(false)}
