@@ -48,8 +48,8 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
                 className={cn(
                   "ds-focus-ring flex w-full items-center gap-2.5 rounded-lg border-l-4 py-2.5 pl-3 pr-3 text-sm font-medium transition-all duration-200",
                   isFinanceActive
-                    ? "gnomo-nav-active border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                    ? "gnomo-nav-active border-white/40 text-white shadow-md"
+                    : "border-transparent text-white/70 hover:bg-white/20 hover:text-white",
                 )}
                 aria-expanded={isFinanceOpen}
               >
@@ -76,8 +76,8 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
                         className={cn(
                           "ds-focus-ring flex items-center gap-3 rounded-lg border-l-4 py-2 pl-3 pr-3 text-sm font-medium transition-all duration-200",
                           isSubItemActive
-                            ? "gnomo-nav-active border-secondary text-secondary"
-                            : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                            ? "gnomo-nav-active border-white/40 text-white shadow-md"
+                            : "border-transparent text-white/70 hover:bg-white/20 hover:text-white",
                         )}
                       >
                         <subItem.icon
@@ -107,8 +107,8 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
             className={cn(
               "ds-focus-ring flex items-center gap-2.5 rounded-lg border-l-4 py-2.5 pl-3 pr-3 text-sm font-medium transition-all duration-200",
               isActive
-                ? "gnomo-nav-active border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                ? "gnomo-nav-active border-white/40 text-white shadow-md"
+                : "border-transparent text-white/70 hover:bg-white/20 hover:text-white",
             )}
           >
             <Icon
@@ -188,7 +188,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 w-full border-b border-primary/10 bg-gradient-to-br from-primary/12 via-secondary/8 to-background shadow-sm backdrop-blur-lg">
+        <header className="sticky top-0 z-30 w-full border-b border-primary/20 bg-gradient-to-r from-primary to-secondary shadow-md backdrop-blur-lg">
           <div className="grid h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 px-4 sm:px-6 lg:px-8">
               <div className="flex items-center shrink-0">
                 <img
@@ -203,7 +203,7 @@ export function AppShell({ children }: AppShellProps) {
                   <select
                     value={activeFamilyId}
                     onChange={(event) => auth.setActiveFamilyId(event.target.value)}
-                    className="ds-focus-ring h-10 w-full rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5 px-3 text-sm font-medium text-foreground transition-all hover:border-primary/40 hover:shadow-md shadow-sm"
+                    className="ds-focus-ring h-10 w-full rounded-lg border border-white/30 bg-white/20 px-3 text-sm font-medium text-white transition-all hover:bg-white/30 hover:border-white/40 shadow-sm"
                     aria-label={t("navigation.currentFamily")}
                   >
                     {familyOptions.map((item) => (
@@ -213,7 +213,7 @@ export function AppShell({ children }: AppShellProps) {
                     ))}
                   </select>
                 ) : (
-                  <div className="rounded-lg border border-primary/25 bg-gradient-to-r from-primary/10 to-secondary/8 px-5 py-2.5 text-center text-sm font-bold text-foreground shadow-sm">
+                  <div className="rounded-lg border border-white/30 bg-white/20 px-5 py-2.5 text-center text-sm font-bold text-white shadow-sm">
                     {family.family?.name ?? t("navigation.noFamilySelected")}
                   </div>
                 )}
@@ -223,7 +223,7 @@ export function AppShell({ children }: AppShellProps) {
                 <button
                   type="button"
                   onClick={() => setIsUserMenuOpen((current) => !current)}
-                  className="ds-focus-ring flex size-11 items-center justify-center rounded-full border border-primary/20 bg-gradient-to-br from-primary/15 to-secondary/12 text-sm font-bold text-foreground transition-all hover:from-primary/25 hover:to-secondary/20 hover:shadow-md shadow-sm"
+                  className="ds-focus-ring flex size-11 items-center justify-center rounded-full border border-white/30 bg-white/20 text-sm font-bold text-white transition-all hover:bg-white/30 hover:border-white/40 shadow-sm"
                   aria-label={t("navigation.userMenu")}
                   aria-expanded={isUserMenuOpen}
                   aria-haspopup="menu"
@@ -256,7 +256,7 @@ export function AppShell({ children }: AppShellProps) {
         </header>
 
         <div className="flex min-h-0 flex-1">
-          <aside className="hidden w-[17rem] shrink-0 border-r border-primary/10 bg-gradient-to-b from-primary/10 via-secondary/6 to-primary/8 px-4 py-5 lg:flex lg:flex-col">
+          <aside className="hidden w-[17rem] shrink-0 border-r border-primary/20 bg-gradient-to-b from-primary to-secondary px-4 py-5 lg:flex lg:flex-col">
             <NavigationContent />
           </aside>
 
@@ -265,20 +265,20 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </div>
 
-        <footer className="w-full border-t border-primary/10 bg-gradient-to-b from-primary/10 via-secondary/6 to-primary/8 px-4 py-9 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+        <footer className="w-full border-t border-primary/20 bg-gradient-to-r from-primary to-secondary px-4 py-9 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-white/80">
             <div className="flex flex-wrap items-center gap-3">
-              <a href="#" className="transition-colors hover:text-primary">
+              <a href="#" className="transition-colors hover:text-white">
                 {t("navigation.footer.contact")}
               </a>
-              <a href="#" className="transition-colors hover:text-primary">
+              <a href="#" className="transition-colors hover:text-white">
                 {t("navigation.footer.terms")}
               </a>
-              <a href="#" className="transition-colors hover:text-primary">
+              <a href="#" className="transition-colors hover:text-white">
                 {t("navigation.footer.privacy")}
               </a>
             </div>
-            <span className="text-xs font-medium">{t("navigation.footer.cnpj")}</span>
+            <span className="text-xs font-medium text-white/90">{t("navigation.footer.cnpj")}</span>
           </div>
         </footer>
       </div>
@@ -290,7 +290,7 @@ export function AppShell({ children }: AppShellProps) {
             onClick={() => setIsMobileNavOpen(false)}
             aria-label={t("navigation.closeMenu")}
           />
-          <aside className="absolute left-0 top-0 h-full w-[82%] max-w-xs border-r border-primary/10 bg-gradient-to-b from-primary/10 via-secondary/6 to-primary/8 p-4 shadow-xl">
+          <aside className="absolute left-0 top-0 h-full w-[82%] max-w-xs border-r border-primary/20 bg-gradient-to-b from-primary to-secondary p-4 shadow-xl">
             <div className="mb-5 flex items-center justify-between border-b border-border/30 pb-3">
               <Button
                 size="sm"
