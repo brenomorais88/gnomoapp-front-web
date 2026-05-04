@@ -16,11 +16,15 @@ export type CategoryListQuery = ListQueryParams & {
   sortDirection?: SortDirection;
 };
 
+/** POST /categories — body matches backend contract (see API / Postman). */
 export type CreateCategoryInput = {
   name: string;
   description?: string;
   color?: string;
-  active?: boolean;
 };
 
-export type UpdateCategoryInput = Partial<CreateCategoryInput>;
+export type UpdateCategoryInput = Partial<
+  CreateCategoryInput & {
+    active: boolean;
+  }
+>;

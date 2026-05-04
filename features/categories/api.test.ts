@@ -78,8 +78,14 @@ describe("categories api", () => {
 
     vi.stubGlobal("fetch", fetchMock);
 
-    const created = await createCategory({ name: "Nova" });
+    const created = await createCategory({ name: "Nova", color: "#22AA66" });
     expect(created.scope).toBe("FAMILY");
+    const postCall = fetchMock.mock.calls[0];
+    expect(postCall?.[1]).toMatchObject({ method: "POST" });
+    expect(JSON.parse(String(postCall?.[1]?.body))).toEqual({
+      name: "Nova",
+      color: "#22AA66",
+    });
 
     const updated = await updateCategory({
       id: "c4",

@@ -34,7 +34,15 @@ type Feedback = {
   message: string;
 };
 
-function normalizeFormValues(values: CategoryFormValues) {
+function normalizeCreatePayload(values: CategoryFormValues) {
+  return {
+    name: values.name.trim(),
+    ...(values.description?.trim() ? { description: values.description.trim() } : {}),
+    ...(values.color?.trim() ? { color: values.color.trim() } : {}),
+  };
+}
+
+function normalizeUpdatePayload(values: CategoryFormValues) {
   return {
     name: values.name.trim(),
     description: values.description?.trim() || undefined,
@@ -96,7 +104,7 @@ export default function CategoriesPage() {
 
   async function handleCreate(values: CategoryFormValues) {
     try {
-      await createMutation.mutateAsync(normalizeFormValues(values));
+      await createMutation.mutateAsync(normalizeCreatePayload(values));
       setFeedback({ tone: "success", message: t("categories.createSuccess") });
       setIsCreateOpen(false);
     } catch (error) {
@@ -115,7 +123,7 @@ export default function CategoriesPage() {
     try {
       await updateMutation.mutateAsync({
         id: editingCategoryId,
-        payload: normalizeFormValues(values),
+        payload: normalizeUpdatePayload(values),
       });
       setFeedback({ tone: "success", message: t("categories.updateSuccess") });
       setEditingCategoryId(null);

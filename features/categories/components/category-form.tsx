@@ -28,6 +28,9 @@ export function CategoryForm({
   onCancel,
   onSubmit,
 }: CategoryFormProps) {
+  // React Hook Form relies on mutable refs and register(); React Compiler can desync DOM vs form state.
+  "use no memo";
+
   const defaults = useMemo(
     () => ({
       name: initialValues?.name ?? "",

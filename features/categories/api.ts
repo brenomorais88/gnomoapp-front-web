@@ -51,10 +51,25 @@ export async function getCategoryById(id: string) {
   return mapCategory(parseEntity<unknown>(response));
 }
 
+function buildCreateCategoryBody(payload: CreateCategoryInput) {
+  const body: Record<string, string> = {
+    name: payload.name.trim(),
+  };
+  const description = payload.description?.trim();
+  if (description) {
+    body.description = description;
+  }
+  const color = payload.color?.trim();
+  if (color) {
+    body.color = color;
+  }
+  return body;
+}
+
 export async function createCategory(payload: CreateCategoryInput) {
   const response = await apiRequest<unknown>(CATEGORIES_ENDPOINT, {
     method: "POST",
-    body: payload,
+    body: buildCreateCategoryBody(payload),
   });
   return mapCategory(parseEntity<unknown>(response));
 }
