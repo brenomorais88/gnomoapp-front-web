@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
 import { useAuth } from "@/providers/auth-provider";
 import { useFamily } from "@/providers/family-provider";
-import { FinancialDashboardSearchBar } from "@/components/shared/layout/financial-dashboard-search-bar";
 
 type AppShellProps = {
   children: ReactNode;
@@ -47,10 +46,10 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
                 type="button"
                 onClick={() => setIsFinanceOpen((current) => !current)}
                 className={cn(
-                  "ds-focus-ring flex w-full items-center gap-2.5 rounded-r-lg border-l-4 py-2 pl-2.5 pr-3 text-sm font-medium transition-colors",
+                  "ds-focus-ring flex w-full items-center gap-2.5 rounded-lg border-l-4 py-2.5 pl-3 pr-3 text-sm font-medium transition-all duration-200",
                   isFinanceActive
-                    ? "border-primary bg-primary/10 text-primary shadow-sm"
-                    : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "gnomo-nav-active border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                 )}
                 aria-expanded={isFinanceOpen}
               >
@@ -75,10 +74,10 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
                         href={subItem.href}
                         onClick={onNavigate}
                         className={cn(
-                          "ds-focus-ring flex items-center gap-3 rounded-r-lg border-l-4 py-2 pl-2.5 pr-3 text-sm font-medium transition-colors",
+                          "ds-focus-ring flex items-center gap-3 rounded-lg border-l-4 py-2 pl-3 pr-3 text-sm font-medium transition-all duration-200",
                           isSubItemActive
-                            ? "border-primary bg-primary/10 text-primary shadow-sm"
-                            : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                            ? "gnomo-nav-active border-secondary text-secondary"
+                            : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                         )}
                       >
                         <subItem.icon
@@ -106,10 +105,10 @@ function NavigationContent({ onNavigate }: { onNavigate?: () => void }) {
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "ds-focus-ring flex items-center gap-2.5 rounded-r-lg border-l-4 py-2 pl-2.5 pr-3 text-sm font-medium transition-colors",
+              "ds-focus-ring flex items-center gap-2.5 rounded-lg border-l-4 py-2.5 pl-3 pr-3 text-sm font-medium transition-all duration-200",
               isActive
-                ? "border-primary bg-primary/10 text-primary shadow-sm"
-                : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "gnomo-nav-active border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground",
             )}
           >
             <Icon
@@ -189,24 +188,14 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 w-full border-b border-border/70 bg-background/95 backdrop-blur">
-          <div className="grid h-16 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 px-4 sm:px-6 lg:px-8">
-              <div className="flex h-full items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="lg:hidden"
-                  onClick={() => setIsMobileNavOpen(true)}
-                  aria-label={t("navigation.openMenu")}
-                >
-                  <Menu className="size-4" />
-                </Button>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">
-                    {t(routeTitle)}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{t("common.workflowSubtitle")}</p>
-                </div>
+        <header className="sticky top-0 z-30 w-full border-b border-gray-200 bg-gray-50 shadow-sm backdrop-blur-lg">
+          <div className="grid h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center shrink-0">
+                <img
+                  src="/gnomo_logo_assets/svg/compact-purple.svg"
+                  alt="Gnomo"
+                  className="h-10 w-auto"
+                />
               </div>
 
               <div className="hidden h-full min-w-[220px] max-w-[380px] items-center justify-center justify-self-center sm:flex">
@@ -214,7 +203,7 @@ export function AppShell({ children }: AppShellProps) {
                   <select
                     value={activeFamilyId}
                     onChange={(event) => auth.setActiveFamilyId(event.target.value)}
-                    className="ds-focus-ring h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                    className="ds-focus-ring h-10 w-full rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5 px-3 text-sm font-medium text-foreground transition-all hover:border-primary/40 hover:shadow-md shadow-sm"
                     aria-label={t("navigation.currentFamily")}
                   >
                     {familyOptions.map((item) => (
@@ -224,17 +213,17 @@ export function AppShell({ children }: AppShellProps) {
                     ))}
                   </select>
                 ) : (
-                  <div className="rounded-xl border border-primary/15 bg-primary/5 px-4 py-2 text-center text-sm font-semibold text-foreground shadow-sm">
+                  <div className="rounded-lg border border-primary/25 bg-gradient-to-r from-primary/10 to-secondary/8 px-5 py-2.5 text-center text-sm font-bold text-foreground shadow-sm">
                     {family.family?.name ?? t("navigation.noFamilySelected")}
                   </div>
                 )}
               </div>
 
-              <div className="flex h-full items-center justify-end" ref={userMenuRef}>
+              <div className="flex h-full items-center justify-end gap-4" ref={userMenuRef}>
                 <button
                   type="button"
                   onClick={() => setIsUserMenuOpen((current) => !current)}
-                  className="ds-focus-ring flex size-10 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-foreground hover:bg-muted/80"
+                  className="ds-focus-ring flex size-11 items-center justify-center rounded-full border border-primary/20 bg-gradient-to-br from-primary/15 to-secondary/12 text-sm font-bold text-foreground transition-all hover:from-primary/25 hover:to-secondary/20 hover:shadow-md shadow-sm"
                   aria-label={t("navigation.userMenu")}
                   aria-expanded={isUserMenuOpen}
                   aria-haspopup="menu"
@@ -242,11 +231,11 @@ export function AppShell({ children }: AppShellProps) {
                   {userInitials}
                 </button>
                 {isUserMenuOpen ? (
-                  <div className="absolute right-4 top-14 z-50 w-44 rounded-lg border border-border bg-card p-1.5 shadow-lg sm:right-6 lg:right-8">
+                  <div className="absolute right-4 top-24 z-50 w-44 rounded-lg border border-border/40 bg-card p-1.5 shadow-lg sm:right-6 lg:right-8">
                     <Link
                       href="/profile"
                       onClick={() => setIsUserMenuOpen(false)}
-                      className="ds-focus-ring block rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted"
+                      className="ds-focus-ring block rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted"
                     >
                       {t("navigation.myProfile")}
                     </Link>
@@ -256,7 +245,7 @@ export function AppShell({ children }: AppShellProps) {
                         setIsUserMenuOpen(false);
                         auth.logout();
                       }}
-                      className="ds-focus-ring mt-1 block w-full rounded-md px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
+                      className="ds-focus-ring mt-1 block w-full rounded-md px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive/10"
                     >
                       {t("auth.actions.logout")}
                     </button>
@@ -264,21 +253,10 @@ export function AppShell({ children }: AppShellProps) {
                 ) : null}
               </div>
           </div>
-          <Suspense fallback={null}>
-            <FinancialDashboardSearchBar />
-          </Suspense>
         </header>
 
         <div className="flex min-h-0 flex-1">
-          <aside className="hidden w-[17rem] shrink-0 border-r border-border/70 bg-surface/80 px-4 py-5 lg:flex lg:flex-col">
-            <div className="mb-5 border-b border-border/70 pb-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                {t("common.appName")}
-              </p>
-              <h2 className="mt-1 text-lg font-semibold text-foreground">
-                {t("common.billManagement")}
-              </h2>
-            </div>
+          <aside className="hidden w-[17rem] shrink-0 border-r border-gray-200 bg-gray-50 px-4 py-5 lg:flex lg:flex-col">
             <NavigationContent />
           </aside>
 
@@ -287,20 +265,20 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </div>
 
-        <footer className="w-full border-t border-border/70 bg-background/95 px-4 py-9 sm:px-6 lg:px-8">
+        <footer className="w-full border-t border-gray-200 bg-gray-50 px-4 py-9 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
             <div className="flex flex-wrap items-center gap-3">
-              <a href="#" className="hover:text-foreground">
+              <a href="#" className="transition-colors hover:text-primary">
                 {t("navigation.footer.contact")}
               </a>
-              <a href="#" className="hover:text-foreground">
+              <a href="#" className="transition-colors hover:text-primary">
                 {t("navigation.footer.terms")}
               </a>
-              <a href="#" className="hover:text-foreground">
+              <a href="#" className="transition-colors hover:text-primary">
                 {t("navigation.footer.privacy")}
               </a>
             </div>
-            <span>{t("navigation.footer.cnpj")}</span>
+            <span className="text-xs font-medium">{t("navigation.footer.cnpj")}</span>
           </div>
         </footer>
       </div>
@@ -312,16 +290,8 @@ export function AppShell({ children }: AppShellProps) {
             onClick={() => setIsMobileNavOpen(false)}
             aria-label={t("navigation.closeMenu")}
           />
-          <aside className="absolute left-0 top-0 h-full w-[82%] max-w-xs border-r border-border bg-surface p-4 shadow-xl">
-            <div className="mb-5 flex items-center justify-between border-b border-border/70 pb-3">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  {t("common.appName")}
-                </p>
-                <p className="text-base font-semibold text-foreground">
-                  {t("navigation.menu")}
-                </p>
-              </div>
+          <aside className="absolute left-0 top-0 h-full w-[82%] max-w-xs border-r border-gray-200 bg-gray-50 p-4 shadow-xl">
+            <div className="mb-5 flex items-center justify-between border-b border-border/30 pb-3">
               <Button
                 size="sm"
                 variant="outline"

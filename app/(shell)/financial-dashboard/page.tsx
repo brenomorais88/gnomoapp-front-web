@@ -431,7 +431,7 @@ function FinancialDashboardContent() {
         dense
         title={t("financeDashboard.monthOccurrencesList.title")}
         description={t("financeDashboard.monthOccurrencesList.description")}
-        className="w-full max-w-none rounded-2xl border-border/70 shadow-sm"
+        className="w-full max-w-none rounded-xl border-border/40 shadow-sm"
         action={<FinanceModeToggle payMode={payMode} onPayModeChange={setPayMode} />}
       >
         {dashboardDataQuery.isLoading ? (

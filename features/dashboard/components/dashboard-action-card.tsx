@@ -47,22 +47,22 @@ export function DashboardActionCard({
   return (
     <Card
       className={cn(
-        "group flex h-full flex-col overflow-hidden shadow-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md",
+        "group flex h-full flex-col overflow-hidden shadow-sm transition-all duration-300 hover:shadow-lg",
         toneBorder[tone],
       )}
     >
-      <CardHeader className="flex flex-row items-start gap-3 space-y-0 p-4 pb-2">
+      <CardHeader className="flex flex-row items-start gap-4 space-y-0 p-4 pb-3">
         <div
           className={cn(
-            "flex size-10 shrink-0 items-center justify-center rounded-xl",
+            "flex size-11 shrink-0 items-center justify-center rounded-xl",
             toneIconBg[tone],
           )}
         >
-          <Icon className="size-5" aria-hidden="true" />
+          <Icon className="size-6" aria-hidden="true" />
         </div>
-        <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
-          <p className="text-lg font-semibold leading-tight tracking-tight text-foreground sm:text-xl">
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
+          <p className="text-xl font-bold leading-tight tracking-tight text-foreground sm:text-2xl">
             {loading ? "…" : primaryLine}
           </p>
           {secondaryLine ? (
@@ -70,12 +70,12 @@ export function DashboardActionCard({
           ) : null}
         </div>
       </CardHeader>
-      <CardFooter className="mt-auto p-4 pt-0">
+      <CardFooter className="mt-auto p-4 pt-2">
         <Button
           type="button"
           variant="outline"
           size="sm"
-          className="w-full"
+          className="w-full transition-all"
           onClick={onAction}
           disabled={disabled || loading}
         >

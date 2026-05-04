@@ -22,7 +22,7 @@ export function SectionCard({
   return (
     <section
       className={cn(
-        "rounded-lg border border-gray-100 bg-card shadow-sm",
+        "rounded-lg border border-border/40 bg-card shadow-sm",
         dense ? "p-3 sm:p-4" : "p-4 sm:p-6",
         className,
       )}
@@ -30,7 +30,7 @@ export function SectionCard({
       {title || description || action ? (
         <div
           className={cn(
-            "flex flex-col border-b border-border/50 sm:flex-row sm:items-start sm:justify-between",
+            "flex flex-col border-b border-border/30 sm:flex-row sm:items-start sm:justify-between",
             dense ? "mb-3 gap-2 pb-3" : "mb-4 gap-3 pb-4",
           )}
         >
@@ -38,8 +38,8 @@ export function SectionCard({
             {title ? (
               <h2
                 className={cn(
-                  "font-semibold text-card-foreground",
-                  dense ? "text-sm sm:text-base" : "text-base sm:text-lg",
+                  "font-bold text-card-foreground",
+                  dense ? "text-sm sm:text-base" : "text-lg sm:text-xl",
                 )}
               >
                 {title}

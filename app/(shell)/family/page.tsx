@@ -332,57 +332,57 @@ export default function FamilyPage() {
             </Button>
           }
         />
-      ) : (
-        <SectionCard
-          title={familyQuery.data?.name ?? t("common.notAvailable")}
-          description={t("family.cardsDescription")}
-        >
-          {sortedMembers.length === 0 ? (
-            <EmptyState
-              title={t("family.noMembers")}
-              description={t("family.noMembersDescription")}
-            />
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {sortedMembers.map((member) => (
-                <button
-                  key={member.id}
-                  type="button"
-                  onClick={() => openMemberModal(member)}
-                  className="ds-focus-ring rounded-lg border border-border/70 bg-background p-4 text-left shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-base font-semibold text-foreground">
-                        {member.name || t("common.notAvailable")}
-                      </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {member.email || t("common.notAvailable")}
-                      </p>
-                    </div>
-                    <Settings2 className="size-4 text-muted-foreground" />
-                  </div>
+            <SectionCard
+              title={familyQuery.data?.name ?? t("common.notAvailable")}
+              description={t("family.cardsDescription")}
+            >
+              {sortedMembers.length === 0 ? (
+                <EmptyState
+                  title={t("family.noMembers")}
+                  description={t("family.noMembersDescription")}
+                />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {sortedMembers.map((member) => (
+                    <button
+                      key={member.id}
+                      type="button"
+                      onClick={() => openMemberModal(member)}
+                      className="ds-focus-ring gnomo-card-hover rounded-lg border border-border/40 bg-gradient-to-br from-card to-background p-5 text-left shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-base font-bold text-foreground truncate">
+                            {member.name || t("common.notAvailable")}
+                          </p>
+                          <p className="mt-1.5 text-sm text-muted-foreground truncate">
+                            {member.email || t("common.notAvailable")}
+                          </p>
+                        </div>
+                        <Settings2 className="size-5 text-muted-foreground shrink-0 mt-0.5" />
+                      </div>
 
-                  <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
-                    <p>
-                      <span className="font-medium text-foreground">{t("family.table.phone")}:</span>{" "}
-                      {member.phone || t("common.notAvailable")}
-                    </p>
-                  </div>
+                      <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+                        <p>
+                          <span className="font-medium text-foreground">{t("family.table.phone")}:</span>{" "}
+                          {member.phone || t("common.notAvailable")}
+                        </p>
+                      </div>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <StatusBadge label={getMemberRoleLabel(member.role)} tone={getMemberRoleTone(member.role)} />
-                    <StatusBadge
-                      label={getMemberStatusLabel(member.status)}
-                      tone={getMemberStatusTone(member.status)}
-                    />
-                  </div>
-                </button>
-              ))}
-            </div>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <StatusBadge label={getMemberRoleLabel(member.role)} tone={getMemberRoleTone(member.role)} />
+                        <StatusBadge
+                          label={getMemberStatusLabel(member.status)}
+                          tone={getMemberStatusTone(member.status)}
+                        />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
           )}
-        </SectionCard>
-      )}
 
       <FamilyMemberModal
         key={`${memberModalMode}-${selectedMember?.id ?? "create"}-${isMemberModalOpen ? "open" : "closed"}`}

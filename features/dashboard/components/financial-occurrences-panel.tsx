@@ -62,24 +62,24 @@ export function FinancialOccurrencesPanel({
           <div
             key={item.id}
             className={cn(
-              "grid gap-4 rounded-2xl border bg-card p-4 shadow-sm transition-all duration-200 hover:shadow-md md:grid-cols-12 md:items-center md:gap-4 md:py-5",
+              "grid gap-4 rounded-lg border bg-card p-4 shadow-sm transition-all duration-200 hover:shadow-md md:grid-cols-12 md:items-center md:gap-4 md:py-5",
               overdueRow
-                ? "border-destructive/25 bg-destructive/[0.05]"
-                : "border-border/60 hover:bg-muted/25",
-              flashSuccessId === item.id && "finance-row-flash ring-2 ring-success/30",
+                ? "border-destructive/30 bg-destructive/[0.08]"
+                : "border-border/40 hover:bg-muted/30",
+              flashSuccessId === item.id && "finance-row-flash ring-2 ring-success/40",
             )}
           >
             <div className="md:col-span-4">
-              <p className="font-semibold leading-snug text-foreground">{item.description}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{categoryOnly}</p>
+              <p className="font-bold leading-snug text-foreground">{item.description}</p>
+              <p className="mt-1.5 text-sm text-muted-foreground">{categoryOnly}</p>
             </div>
 
             <div className="md:col-span-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 {t("financeDashboard.monthOccurrencesList.dueDate")}
               </p>
-              <p className="text-sm font-medium text-foreground">{dueLabel}</p>
-              <p className="mt-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <p className="text-sm font-semibold text-foreground">{dueLabel}</p>
+              <p className="mt-2.5 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 {t("financeDashboard.monthOccurrencesList.paymentDate")}
               </p>
               <p className="text-sm text-muted-foreground">
@@ -88,13 +88,13 @@ export function FinancialOccurrencesPanel({
             </div>
 
             <div className="flex items-baseline justify-between gap-3 md:col-span-2 md:flex-col md:items-end md:justify-center">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground md:hidden">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground md:hidden">
                 {t("occurrences.table.amount")}
               </p>
               <p
                 className={cn(
-                  "text-lg font-semibold tabular-nums tracking-tight text-foreground md:text-right",
-                  payMode && "text-xl font-bold",
+                  "text-lg font-bold tabular-nums tracking-tight text-foreground md:text-right",
+                  payMode && "text-2xl",
                 )}
               >
                 {formatCurrencyBRL(item.amount)}
@@ -113,7 +113,7 @@ export function FinancialOccurrencesPanel({
                     variant="outline"
                     size={payMode ? "default" : "sm"}
                     className={cn(
-                      "w-full gap-2 md:w-auto md:min-w-[9rem]",
+                      "w-full gap-2 md:w-auto md:min-w-[9rem] font-semibold transition-all",
                       payMode && "min-h-11 text-base",
                     )}
                     disabled={paymentMutationBusy}
@@ -129,7 +129,7 @@ export function FinancialOccurrencesPanel({
                     type="button"
                     variant="outline"
                     size={payMode ? "default" : "sm"}
-                    className={cn("w-full gap-2 md:w-auto", payMode && "min-h-11")}
+                    className={cn("w-full gap-2 md:w-auto font-semibold transition-all", payMode && "min-h-11")}
                     disabled={paymentMutationBusy}
                     onClick={() => onPayment(item)}
                   >
