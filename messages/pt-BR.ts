@@ -58,7 +58,7 @@ export const ptBRMessages = {
     currentContextTitle: "Contexto de visualização",
     currentContextDescription: "Você está visualizando: {context}",
     short: {
-      VISIBLE_TO_ME: "Visível",
+      VISIBLE_TO_ME: "Tudo",
       PERSONAL: "Meu",
       FAMILY: "Família",
     },

@@ -20,7 +20,6 @@ import { LoadingState } from "@/components/shared/feedback/loading-state";
 import { AppPageContainer } from "@/components/shared/layout/app-page-container";
 import { PageHeader } from "@/components/shared/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { useAccountsListQuery } from "@/features/accounts/hooks";
 import { useCategoriesListQuery } from "@/features/categories/hooks";
 import { DashboardActionCard } from "@/features/dashboard/components/dashboard-action-card";
 import {
@@ -78,7 +77,6 @@ function FinancialDashboardContent() {
 
   const authorization = useAuthorization();
   const { scope, setScope } = useViewScope();
-  const [accountId, setAccountId] = useState("");
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()));
   const [statusSegment, setStatusSegment] = useState<FinanceStatusSegment>("all");
   const [listFeedback, setListFeedback] = useState<{
@@ -105,18 +103,14 @@ function FinancialDashboardContent() {
   const unmarkPaidMutation = useUnmarkOccurrencePaidMutation();
   const cardsDataQuery = useFinancialDashboardDataQuery({
     scope,
-    accountId: accountId || undefined,
     statuses: allStatuses,
     month,
   });
   const dashboardDataQuery = useFinancialDashboardDataQuery({
     scope,
-    accountId: accountId || undefined,
     statuses: apiStatuses,
     month,
   });
-
-  const accountsQuery = useAccountsListQuery({ scope });
   const categoriesQuery = useCategoriesListQuery();
 
   const categoriesById = useMemo(() => {
@@ -268,9 +262,6 @@ function FinancialDashboardContent() {
       <FinancialFilterBar
         scope={scope}
         onScopeChange={setScope}
-        accountId={accountId}
-        onAccountChange={setAccountId}
-        accounts={accountsQuery.data ?? []}
         month={month}
         onMonthChange={(value) => {
           const next = parseMonthInput(value);

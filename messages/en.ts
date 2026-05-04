@@ -4,7 +4,7 @@ export const enMessages = {
   },
   viewScope: {
     short: {
-      VISIBLE_TO_ME: "Visible",
+      VISIBLE_TO_ME: "All",
       PERSONAL: "Mine",
       FAMILY: "Family",
     },

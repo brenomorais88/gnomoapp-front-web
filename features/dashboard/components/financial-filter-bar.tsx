@@ -1,6 +1,5 @@
 "use client";
 
-import type { AccountDto } from "@/features/accounts/types";
 import type { ViewScope } from "@/features/view-context/types";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
@@ -18,9 +17,6 @@ const scopeLabelKey: Record<ViewScope, string> = {
 type FinancialFilterBarProps = {
   scope: ViewScope;
   onScopeChange: (scope: ViewScope) => void;
-  accountId: string;
-  onAccountChange: (accountId: string) => void;
-  accounts: AccountDto[];
   month: string;
   onMonthChange: (month: string) => void;
   statusSegment: FinanceStatusSegment;
@@ -30,9 +26,6 @@ type FinancialFilterBarProps = {
 export function FinancialFilterBar({
   scope,
   onScopeChange,
-  accountId,
-  onAccountChange,
-  accounts,
   month,
   onMonthChange,
   statusSegment,
@@ -45,59 +38,45 @@ export function FinancialFilterBar({
     { id: "overdue", label: t("financeDashboard.statusQuick.overdue") },
   ];
 
-  return (
-    <div className="space-y-5 rounded-lg border border-border/40 bg-card p-5 shadow-sm sm:p-6">
-      <fieldset className="space-y-2">
-        <legend className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          {t("financeDashboard.filters.scope")}
-        </legend>
-        <div className="inline-flex flex-wrap gap-1 rounded-lg border border-border/60 bg-background p-1.5 shadow-sm">
-          {SCOPES.map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => onScopeChange(value)}
-              className={cn(
-                "ds-focus-ring rounded-md px-3 py-2 text-xs font-bold transition-all sm:text-sm",
-                scope === value
-                  ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-md"
-                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-              )}
-              aria-pressed={scope === value}
-            >
-              {t(scopeLabelKey[value])}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+  const filterLabelClass =
+    "mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground";
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="space-y-2">
-          <label
-            className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
-            htmlFor="financial-filter-account"
+  return (
+    <div className="rounded-lg border border-border/40 bg-card p-4 shadow-sm">
+      <div
+        className={cn(
+          "flex flex-col gap-4",
+          "md:flex-row md:flex-wrap md:items-end md:gap-x-6 md:gap-y-3 lg:gap-x-8",
+        )}
+      >
+        <div className="shrink-0">
+          <span className={filterLabelClass}>{t("financeDashboard.filters.scope")}</span>
+          <div
+            className="inline-flex w-fit max-w-full flex-wrap gap-0.5 rounded-md border border-border/60 bg-muted/30 p-0.5"
+            role="group"
+            aria-label={t("financeDashboard.filters.scope")}
           >
-            {t("financeDashboard.filters.account")}
-          </label>
-          <select
-            id="financial-filter-account"
-            value={accountId}
-            onChange={(e) => onAccountChange(e.target.value)}
-            className="ds-focus-ring h-10 w-full rounded-lg border border-border/50 bg-background px-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-border/70"
-          >
-            <option value="">{t("financeDashboard.filters.allAccounts")}</option>
-            {accounts.map((account) => (
-              <option key={account.id} value={account.id}>
-                {account.title}
-              </option>
+            {SCOPES.map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => onScopeChange(value)}
+                className={cn(
+                  "ds-focus-ring whitespace-nowrap rounded px-2.5 py-1.5 text-xs font-semibold transition-all sm:px-3 sm:text-sm",
+                  scope === value
+                    ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-background hover:text-foreground",
+                )}
+                aria-pressed={scope === value}
+              >
+                {t(scopeLabelKey[value])}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
-        <div className="space-y-2">
-          <label
-            className="text-xs font-bold uppercase tracking-widest text-muted-foreground"
-            htmlFor="financial-filter-month"
-          >
+
+        <div className="w-full shrink-0 sm:w-auto">
+          <label className={filterLabelClass} htmlFor="financial-filter-month">
             {t("financeDashboard.filters.month")}
           </label>
           <input
@@ -105,41 +84,41 @@ export function FinancialFilterBar({
             type="month"
             value={month}
             onChange={(e) => onMonthChange(e.target.value)}
-            className="ds-focus-ring h-10 w-full rounded-lg border border-border/50 bg-background px-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-border/70"
+            className="ds-focus-ring box-border h-9 w-full min-w-0 rounded-md border border-border/50 bg-background px-2.5 text-sm font-medium text-foreground shadow-sm sm:w-[11.5rem]"
           />
         </div>
-      </div>
 
-      <fieldset className="space-y-2">
-        <legend className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          {t("financeDashboard.filters.status")}
-        </legend>
-        <div
-          className="flex flex-wrap gap-2"
-          role="group"
-          aria-label={t("financeDashboard.filters.status")}
-        >
-          {statusOptions.map((opt) => {
-            const active = statusSegment === opt.id;
-            return (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => onStatusSegmentChange(opt.id)}
-                className={cn(
-                  "ds-focus-ring rounded-full border px-4 py-2 text-xs font-bold transition-all sm:text-sm",
-                  active
-                    ? "border-primary bg-gradient-to-r from-primary/15 to-secondary/10 text-primary shadow-sm"
-                    : "border-border/50 bg-background text-muted-foreground hover:border-border hover:text-foreground hover:bg-muted/30",
-                )}
-                aria-pressed={active}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
+        <div className="min-w-0 flex-1">
+          <span className={filterLabelClass} id="financial-filter-status-label">
+            {t("financeDashboard.filters.status")}
+          </span>
+          <div
+            className="flex flex-wrap gap-1.5"
+            role="group"
+            aria-labelledby="financial-filter-status-label"
+          >
+            {statusOptions.map((opt) => {
+              const active = statusSegment === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => onStatusSegmentChange(opt.id)}
+                  className={cn(
+                    "ds-focus-ring whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-all sm:text-sm",
+                    active
+                      ? "border-primary bg-primary/10 text-primary shadow-sm"
+                      : "border-transparent bg-muted/40 text-muted-foreground hover:border-border/60 hover:bg-muted/60 hover:text-foreground",
+                  )}
+                  aria-pressed={active}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </fieldset>
+      </div>
     </div>
   );
 }
