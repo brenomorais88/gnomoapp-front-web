@@ -30,7 +30,7 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-10">
-      <section className="w-full rounded-xl border border-border bg-card p-5 shadow-sm">
+      <section className="w-full rounded-lg border border-gray-100 bg-card p-5 shadow-sm">
         <h1 className="text-xl font-semibold text-foreground">{t("auth.login.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("auth.login.description")}</p>
 

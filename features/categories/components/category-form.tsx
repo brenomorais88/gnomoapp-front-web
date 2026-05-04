@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { categoryFormSchema, CategoryFormValues } from "@/features/categories/schema";
 import { Button } from "@/components/ui/button";
@@ -28,14 +28,26 @@ export function CategoryForm({
   onCancel,
   onSubmit,
 }: CategoryFormProps) {
-  const form = useForm<CategoryFormValues>({
-    resolver: zodResolver(categoryFormSchema),
-    defaultValues: {
+  const defaults = useMemo(
+    () => ({
       name: initialValues?.name ?? "",
       description: initialValues?.description ?? "",
       color: initialValues?.color ?? "#2563EB",
       active: initialValues?.active ?? true,
-    },
+    }),
+    [
+      initialValues?.active,
+      initialValues?.color,
+      initialValues?.description,
+      initialValues?.name,
+    ],
+  );
+
+  const form = useForm<CategoryFormValues>({
+    resolver: zodResolver(categoryFormSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
+    defaultValues: defaults,
   });
   const selectedColor = useWatch({
     control: form.control,
@@ -43,13 +55,8 @@ export function CategoryForm({
   });
 
   useEffect(() => {
-    form.reset({
-      name: initialValues?.name ?? "",
-      description: initialValues?.description ?? "",
-      color: initialValues?.color ?? "#2563EB",
-      active: initialValues?.active ?? true,
-    });
-  }, [form, initialValues]);
+    form.reset(defaults);
+  }, [form, defaults]);
 
   return (
     <form

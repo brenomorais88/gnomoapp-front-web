@@ -1,0 +1,14 @@
+{
+  "brand": "Gnomo",
+  "tagline": "Seu assistente para uma vida organizada",
+  "colors": {
+    "blue": "#2563EB",
+    "purple": "#7C3AED",
+    "green": "#16A34A",
+    "navy": "#0F172A",
+    "gray": "#6B7280",
+    "black": "#000000",
+    "white": "#FFFFFF",
+    "light": "#F8FAFC"
+  }
+}

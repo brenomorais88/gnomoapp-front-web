@@ -41,6 +41,8 @@ export const queryKeys = {
   },
   dashboard: {
     root: ["dashboard"] as const,
+    financialData: (params: unknown) =>
+      [...queryKeys.dashboard.root, "financial-data", params] as const,
     home: (month: string) => [...queryKeys.dashboard.root, "home", month] as const,
     day: (date: string) => [...queryKeys.dashboard.root, "day", date] as const,
     categorySummary: (month: string) =>

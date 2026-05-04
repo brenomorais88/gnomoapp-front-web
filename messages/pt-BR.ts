@@ -1,6 +1,6 @@
 export const ptBRMessages = {
   common: {
-    appName: "Daily Web",
+    appName: "Gnomo",
     billManagement: "Gestão de contas",
     workflowSubtitle: "Fluxo limpo e focado",
     unknown: "Desconhecido",
@@ -8,6 +8,7 @@ export const ptBRMessages = {
   },
   navigation: {
     dashboard: "Início",
+    financeDashboard: "Dashboard",
     family: "Família",
     finance: "Financeiro",
     categories: "Categorias",
@@ -56,6 +57,11 @@ export const ptBRMessages = {
     family: "Contas da família",
     currentContextTitle: "Contexto de visualização",
     currentContextDescription: "Você está visualizando: {context}",
+    short: {
+      VISIBLE_TO_ME: "Visível",
+      PERSONAL: "Meu",
+      FAMILY: "Família",
+    },
   },
   auth: {
     actions: {
@@ -161,6 +167,99 @@ export const ptBRMessages = {
     loadingDashboard: "Carregando dados do painel...",
     overdueHint: "Requer atenção imediata",
     next7DaysHint: "Com base na janela de vencimento",
+  },
+  financeDashboard: {
+    title: "Dashboard financeiro",
+    description:
+      "Visão inicial do módulo financeiro com estrutura base para indicadores e acompanhamentos.",
+    loadErrorTitle: "Não foi possível carregar o dashboard financeiro",
+    loadingInitial: "Carregando dashboard financeiro...",
+    revalidating: "Atualizando dados do dashboard...",
+    emptyMonthTitle: "Sem dados para o mês selecionado",
+    emptyMonthDescription:
+      "Ainda não existem ocorrências para este mês com os filtros atuais.",
+    filters: {
+      scope: "Escopo",
+      account: "Conta",
+      allAccounts: "Todas",
+      status: "Status",
+      month: "Mês",
+    },
+    searchPlaceholder: "Buscar contas...",
+    statusQuick: {
+      all: "Todos",
+      pending: "Pendentes",
+      paid: "Pagos",
+      overdue: "Atrasados",
+    },
+    mode: {
+      overview: "Visão geral",
+      payMode: "Modo pagar contas",
+    },
+    actionCards: {
+      overdueTitle: "Contas atrasadas",
+      overdueAction: "Resolver agora",
+      pendingTitle: "Pendentes do mês",
+      pendingAction: "Ver pendentes",
+      paidTitle: "Total pago",
+      paidAction: "Ver histórico",
+      upcomingTitle: "Próximos vencimentos",
+      upcomingSubtitle: "Até 7 dias",
+      upcomingAction: "Planejar semana",
+    },
+    distribution: {
+      topCategories: "Top categorias",
+    },
+    overdueCountSummary: "{count} contas",
+    upcomingCountSummary: "{count} no período",
+    calendar: {
+      title: "Calendário financeiro",
+      description: "Use a visão mensal ou semanal para selecionar o dia da lista.",
+      monthView: "Mensal",
+      weekView: "Semanal",
+      previousPeriod: "Período anterior",
+      nextPeriod: "Próximo período",
+      today: "Hoje",
+    },
+    cards: {
+      overdue: "Contas em atraso",
+      overdueAmount: "Valor em atraso: {amount}",
+      monthTotal: "Total do mês",
+      monthTotalHint: "Soma de contas PENDENTES + PAGAS do mês",
+      forecast: "Previsão do mês",
+      forecastHint: "Valor fixo no MVP",
+      monthlyRule: "Regra mensal",
+      selectedFiltersInfo: "Cards fixos",
+      statusIndependenceHint: "Os cards não são afetados pelo filtro livre de status.",
+    },
+    dailyList: {
+      title: "Lista diária",
+      description: "Ocorrências de {date}, refletindo os filtros de status.",
+      meta: "Conta: {account} | Categoria: {category}",
+      markAsPaid: "Marcar como paga",
+      unmarkPaid: "Desmarcar pagamento",
+      updatingStatus: "Atualizando...",
+      updateStatusError: "Não foi possível atualizar o status da ocorrência.",
+    },
+    pie: {
+      title: "Distribuição por categoria",
+      description: "Gráfico de pizza com base nas ocorrências filtradas por status.",
+      fallbackCategory: "Sem categoria definida",
+    },
+    monthOccurrencesList: {
+      title: "Ocorrências do mês",
+      description:
+        "Todas as ocorrências do período filtrado, ordenadas por data de pagamento; sem pagamento, usa a data de vencimento.",
+      paymentDate: "Pagamento",
+      dueDate: "Vencimento",
+      noPaymentYet: "Em aberto",
+      emptyTitle: "Sem ocorrências no mês",
+      emptyDescription: "Não há itens para exibir com os filtros atuais.",
+    },
+    noDailyData: "Sem ocorrências para os filtros atuais",
+    noDailyDataDescription: "Ajuste os filtros para visualizar itens na lista diária.",
+    noPieData: "Sem dados para o gráfico",
+    noPieDataDescription: "Nenhuma ocorrência encontrada para composição da pizza.",
   },
   categories: {
     title: "Categorias",

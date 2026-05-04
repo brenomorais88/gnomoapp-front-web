@@ -1,6 +1,6 @@
-# Daily Web Frontend
+# Gnomo (frontend)
 
-Daily Web is a frontend for bill and occurrence management built with a clean, responsive, dashboard-first UX.
+Gnomo is a frontend for bill and occurrence management built with a clean, responsive, dashboard-first UX.
 
 ## Main technologies
 
@@ -68,6 +68,10 @@ npm run build
 - `lib/config/` - Safe environment config
 - `hooks/api/` - Base React Query patterns
 - `docs/` - Design system and API integration docs
+
+## Theme
+
+Design tokens (colors, radii, focus) live in `app/globals.css` (`@theme` + `:root`) for Tailwind CSS v4.
 
 ## Backend integration expectations
 

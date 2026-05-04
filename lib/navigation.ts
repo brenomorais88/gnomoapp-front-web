@@ -8,6 +8,11 @@ import {
 
 export const financeNavigationItems = [
   {
+    labelKey: "navigation.financeDashboard",
+    href: "/financial-dashboard",
+    icon: LayoutDashboard,
+  },
+  {
     labelKey: "navigation.accounts",
     href: "/accounts",
     icon: WalletCards,

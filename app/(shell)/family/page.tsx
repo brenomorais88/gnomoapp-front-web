@@ -349,7 +349,7 @@ export default function FamilyPage() {
                   key={member.id}
                   type="button"
                   onClick={() => openMemberModal(member)}
-                  className="ds-focus-ring rounded-xl border border-border/70 bg-background p-4 text-left shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
+                  className="ds-focus-ring rounded-lg border border-border/70 bg-background p-4 text-left shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
