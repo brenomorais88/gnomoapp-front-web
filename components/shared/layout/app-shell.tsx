@@ -192,7 +192,7 @@ export function AppShell({ children }: AppShellProps) {
           <div className="grid h-20 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 px-4 sm:px-6 lg:px-8">
               <div className="flex items-center shrink-0">
                 <img
-                  src="/gnomo_logo_assets/svg/horizontal-full-purple.svg"
+                  src="/gnomo_logo_assets/svg/compact-purple.svg"
                   alt="Gnomo"
                   className="h-10 w-auto"
                 />
