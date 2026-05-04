@@ -267,14 +267,6 @@ export function AppShell({ children }: AppShellProps) {
 
         <div className="flex min-h-0 flex-1">
           <aside className="hidden w-[17rem] shrink-0 border-r border-border/30 bg-gradient-to-b from-surface via-surface to-background/50 px-4 py-5 lg:flex lg:flex-col">
-            <div className="mb-5 border-b border-border/30 pb-4">
-              <p className="text-xs uppercase tracking-widest font-semibold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
-                {t("common.appName")}
-              </p>
-              <h2 className="mt-2 text-lg font-bold text-foreground">
-                {t("common.billManagement")}
-              </h2>
-            </div>
             <NavigationContent />
           </aside>
 
@@ -310,14 +302,6 @@ export function AppShell({ children }: AppShellProps) {
           />
           <aside className="absolute left-0 top-0 h-full w-[82%] max-w-xs border-r border-border/30 bg-gradient-to-b from-surface via-surface to-background/50 p-4 shadow-xl">
             <div className="mb-5 flex items-center justify-between border-b border-border/30 pb-3">
-              <div>
-                <p className="text-xs uppercase tracking-widest font-semibold text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">
-                  {t("common.appName")}
-                </p>
-                <p className="text-base font-bold text-foreground">
-                  {t("navigation.menu")}
-                </p>
-              </div>
               <Button
                 size="sm"
                 variant="outline"
